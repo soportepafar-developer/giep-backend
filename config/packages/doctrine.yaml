@@ -1,0 +1,56 @@
+doctrine:
+        dbal:
+            default_connection: default
+            connections:
+                default:
+                    # configure these for your database server
+                    url: '%env(DATABASE_URL)%'
+                    driver: 'pdo_mysql'
+                    #server_version: '5.7'
+                    charset: utf8mb4
+                customer:
+                    # configure these for your database server
+                    url: '%env(DATABASE_URL_STAEXPED)%'
+                    driver: 'pdo_mysql'
+                    #server_version: '5.7'
+                    charset: utf8mb4
+                #notification:
+                    # configure these for your database server
+                    #url: '%env(DATABASE_URL_NOTIFICATION)%'
+                   # driver: 'pdo_mysql'
+                    #server_version: '5.7'
+                   # charset: utf8mb4    
+        orm:
+            default_entity_manager: default
+            entity_managers:
+                default:
+                    connection: default
+                    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+                    #auto_mapping: true
+                    mappings:
+                        App:
+                            is_bundle: false
+                            type: annotation
+                            dir: '%kernel.project_dir%/src/Entity'
+                            prefix: 'App\Entity'
+                            alias: App
+                customer:
+                    connection: customer
+                    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+                    mappings:
+                        Customer:
+                            is_bundle: false
+                            type: annotation
+                            dir: '%kernel.project_dir%/src/Entity/StaExped'
+                            prefix: 'App\Entity\StaExped'
+                            alias: Customer
+                #notification:
+                 #   connection: notification
+                  #  naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+                  #  mappings:
+                   #     Notification:
+                    #        is_bundle: false
+                     #       type: annotation
+                      #      dir: '%kernel.project_dir%/src/Entity'
+                       #     prefix: 'App\Entity'
+                        #    alias: Notification            

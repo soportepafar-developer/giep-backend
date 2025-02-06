@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Repository\Proyecto;
+
+use App\Entity\Proyecto\ItemComentario;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @method ItemComentario|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ItemComentario|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ItemComentario[]    findAll()
+ * @method ItemComentario[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class ItemComentarioRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ItemComentario::class);
+    }
+
+    // /**
+    //  * @return ItemComentario[] Returns an array of ItemComentario objects
+    //  */
+    /*
+    public function findByExampleField($value)
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.exampleField = :val')
+            ->setParameter('val', $value)
+            ->orderBy('i.id', 'ASC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+    */
+
+    /*
+    public function findOneBySomeField($value): ?ItemComentario
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.exampleField = :val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+    */
+}
