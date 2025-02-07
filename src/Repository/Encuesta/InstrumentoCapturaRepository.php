@@ -22,7 +22,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 Use App\Entity\User;
-use App\Entity\Proyecto\Empresa;
+Use App\Entity\Proyecto\Empresa;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Security;
 use	Doctrine\ORM\Tools\Pagination\Paginator;
@@ -174,74 +174,7 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
      }
 
 
-    /**
-     * Lis InstrumentoCaptura Publicados.
-     */
-
-     public function findListAllPublicado()
-    {
-        $entityManagerDefault = $this->getEntityManager();
-        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-        $data= $this->createQueryBuilder('c')
-            ->Where('c.publicar=1')
-            ->andWhere("c.fechaVigencia>='".date("Y-m-d h:i:s")."'")
-            ->andWhere('c.idempresa ='.$empresa->getId())
-            ->orderBy('c.id', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-        $user=array();
-        $datainstrumentocap=array();
-        foreach($data as $clave=>$valor){
-            $instrumentocapturaDto =new InstrumentoCapturaaOutPutDto;
-            $instrumentocapturaDto->id=$valor->getId();
-            $instrumentocapturaDto->nombre=$valor->getNombre();
-            $instrumentocapturaDto->descripcion=$valor->getDescripcion();
-            $instrumentocapturaDto->idTipoUnidad=$valor->getIdTipoUnidad();
-            $instrumentocapturaDto->unidad=$valor->getUnidad();
-            $instrumentocapturaDto->path=$valor->getPath();
-            $instrumentocapturaDto->puntosGlobales= $valor->getPuntosGlobales();
-            $datainstrumentocap[]=$instrumentocapturaDto;
-        }
-            return array("data"=>$datainstrumentocap);
-     }
-
-
-     /**
-     * Lis InstrumentoCaptura Publicados.
-     */
-
-     public function findListAllPublicado()
-    {
-
-        $data= $this->createQueryBuilder('c')
-            ->Where('c.publicar=1')
-            ->andWhere("c.fechaVigencia>='".date("Y-m-d h:i:s")."'")
-            ->orderBy('c.id', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-        $user=array();
-        $datainstrumentocap=array();
-        foreach($data as $clave=>$valor){
-
-            //$valor->getFechaVigencia()->format("Y-m-d");
-
-            $instrumentocapturaDto =new InstrumentoCapturaaOutPutDto;
-            $instrumentocapturaDto->id=$valor->getId();
-            $instrumentocapturaDto->nombre=$valor->getNombre();
-            $instrumentocapturaDto->descripcion=$valor->getDescripcion();
-            $instrumentocapturaDto->idTipoUnidad=$valor->getIdTipoUnidad();
-            $instrumentocapturaDto->unidad=$valor->getUnidad();
-            $instrumentocapturaDto->path=$valor->getPath();
-            $instrumentocapturaDto->puntosGlobales= $valor->getPuntosGlobales();
-            $datainstrumentocap[]=$instrumentocapturaDto;
-
-        }
-            return array("data"=>$datainstrumentocap);
-     }
-
-     /**
+      /**
      * Create InstrumentoCaptura.
      */
     public function post($data,$validator,$helper): JsonResponse  {
@@ -262,10 +195,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
         $entity->setStatusId($entityStatus); 
         $entity->setOrden(1);
         $entity->setPublicar(0);                
-        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-            if($empresa)
-                $entity->setIdempresa($empresa); 
-
         if(isset($data["roles"])){
             foreach($data["roles"] as $valor){
                 $rol= $entityManager->getRepository(Rol::class)->findOneBy(array("descripcion"=>$valor));
@@ -280,6 +209,10 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
             return new JsonResponse(['msg'=>$errorsString],500);
         }else{
             $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+            $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+            if($empresa)
+                $entity->setIdempresa($empresa);
+
             $entity->setCreateBy($currentUser->getUserName());
             //$entity->setIdStatus($entityManager->getRepository(Status::class)->find(1)); 
             $entityManager->persist($entity);
@@ -305,10 +238,11 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     $seccion->setUpdateAt(new \DateTime());
                     $seccion->setStatus($entityManager->getRepository(Status::class)->findOneById(1));          
                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-                    $seccion->setUpdateBy($currentUser->getUserName());
                     $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                     if($empresa)
-                        $entity->setIdempresa($empresa); 
+                      $seccion->setIdempresa($empresa);
+
+                    $seccion->setUpdateBy($currentUser->getUserName());
                     $entityManager->persist($seccion);
                     $entityManager->flush();
                     foreach($valor["questions"] as $question){
@@ -322,8 +256,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $pregunta->setIdInstrumento($entity);
                         $pregunta->setSeccion($seccion);
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                        if($empresa)
-                          $pregunta->setIdempresa($empresa); 
+                         if($empresa)
+                           $pregunta->setIdempresa($empresa);
                         $entityManager->persist($pregunta);
                         $entityManager->flush();    
                         if(isset($question["options"])){
@@ -338,10 +272,10 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                 $opciones->setIdPregunta($pregunta);
                                 $opciones->setUpdateAt(new \DateTime());
                                 $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-                                $opciones->setUpdateBy($currentUser->getUserName());                                
                                 $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                 if($empresa)
-                                   $opciones->setIdempresa($empresa); 
+                                   $opciones->setIdempresa($empresa);
+                                $opciones->setUpdateBy($currentUser->getUserName());                                
                                 $entityManager->persist($opciones);
                                 $entityManager->flush();    
                                 if(isset($options["scoreBycharges"])){
@@ -354,7 +288,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                         $opcionesCargos->setCreateBy($currentUser->getUsername());
                                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                         if($empresa)
-                                           $opcionesCargos->setIdempresa($empresa); 
+                                           $opcionesCargos->setIdempresa($empresa);
+
                                         $entityManager->persist($opcionesCargos);
                                         $entityManager->flush();    
         
@@ -433,7 +368,7 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
             $instrumentoDto->path=$valor->getPath();
             $instrumentoDto->idTipoUnidad=($valor->getIdTipoUnidad()!=null)?array("id"=>$valor->getIdTipoUnidad()->getId(),"Descripcion"=>$valor->getIdTipoUnidad()->getNombre()):[];
             $instrumentoDto->statusId=($valor->getStatusId()!=null)?array("id"=>$valor->getStatusId()->getId(),"Descripcion"=>$valor->getStatusId()->getDescripcion()):[];
-            $instrumentoDto->puntosGlobales= $valor->getPuntosGlobales();           
+            
             if($valor->getFechaPublicacion()!=null){
                 $instrumentoDto->fechaPublicacion=$valor->getFechaPublicacion()->format("Y-m-d");
             }    
@@ -521,9 +456,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
         $entity->setDescripcion(!is_null($data["description"])?$data["description"]:null);
         $entityStatus = $entityManager->getRepository(Status::class)->findOneById(1);          
         $entity->setStatusId($entityStatus); 
-        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-            if($empresa)
-                $entity->setIdempresa($empresa); 
         //$entity->setPublicar(0); 
        
         if(isset($data["roles"])){
@@ -643,7 +575,7 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $instrumentoUsuario->setFechaAsignacion(new \DateTime());
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                         if($empresa)
-                          $instrumentoUsuario->setIdempresa($empresa); 
+                           $instrumentoUsuario->setIdempresa($empresa);
                         $entityManagerInstrumento->persist($instrumentoUsuario);
                         $entityManagerInstrumento->flush();
                     }
@@ -664,9 +596,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     if($entitySeccion!=null){
                         $entitySeccion->setNombre($valor["name"]);
                         $entitySeccion->setOrden($valor["numberSection"]);
-                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                        if($empresa)
-                           $entitySeccion->setIdempresa($empresa); 
                         $entityManager->flush();
                         foreach($valor["questions"] as $preguntas){
                             if(isset($preguntas["id"])){
@@ -693,38 +622,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                     $idOptions=null;
                                     if(isset($preguntas["options"])){
                                         foreach($preguntas["options"] as $options){
-                                            if(isset($options["scoreBycharges"])){
-                                                $sql = " select * from opciones_cargo where opcion_id  = " . $options["id"];
-                                                $opciones = [];
-                                                $conn = $this->getEntityManager()->getConnection();
-                                                $stmt = $conn->prepare($sql);
-                                                $stmt->execute();
-                                                $entityOpcionesCargo= $stmt->fetchAll();
-                                                if($entityOpcionesCargo!=null){                                            
-                                                    foreach($entityOpcionesCargo as $opciones){ 
-
-                                                       $entity = $this->getEntityManager()->getRepository(OpcionesCargo::class)->find($opciones['id']);
-                                                        $entityManager->remove($entity);
-                                                        $entityManager->flush(); 
-                                                    }                                                
-                                                } 
-                                                foreach($options["scoreBycharges"] as $optionsCargos){
-                                                    $entityOpciones =$entityManager->getRepository(Opciones::class)->find($options["id"]);
-                                                    $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-                                                    $opcionesCargos = new OpcionesCargo();
-                                                    $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
-                                                    $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
-                                                    $opcionesCargos->setOpcion($entityOpciones);
-                                                    $opcionesCargos->setScore($optionsCargos["score"]);
-                                                    $opcionesCargos->setCreateBy($currentUser->getUsername());
-                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                                    if($empresa)
-                                                       $opcionesCargos->setIdempresa($empresa); 
-                                                    $entityManager->persist($opcionesCargos);
-                                                    $entityManager->flush();                        
-                                                }
-                                                $fin=0;
-                                        }else{
                                             if(isset($options["id"])){
                                                 $idOptions=$options["id"];
                                                 $entityOpciones =$entityManager->getRepository(Opciones::class)->find($options["id"]);
@@ -735,9 +632,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
                                                     $entityOpciones->setUpdateBy($currentUser->getUserName());                                
-                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                                    if($empresa)
-                                                      $entityOpciones->setIdempresa($empresa); 
                                                     $entityManager->flush();
                                                 }
                                             }else{
@@ -749,10 +643,10 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                                     $entityOpciones->setIdPregunta($entity);
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-                                                    $entityOpciones->setUpdateBy($currentUser->getUserName());                                
                                                     $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                                     if($empresa)
-                                                      $entityOpciones->setIdempresa($empresa); 
+                                                       $entityOpciones->setIdempresa($empresa);
+                                                    $entityOpciones->setUpdateBy($currentUser->getUserName());                                
                                                     $entityManager->persist($entityOpciones);
                                                     $entityManager->flush();   
                                                     $idOptions=$entityOpciones->getId();
@@ -805,7 +699,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                 $pregunta->setSeccion($entitySeccion);
                                 $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                 if($empresa)
-                                   $pregunta->setIdempresa($empresa); 
+                                   $pregunta->setIdempresa($empresa);
+
                                 $entityManager->persist($pregunta);
                                 $entityManager->flush();    
                                 if(isset($preguntas["options"])){
@@ -818,10 +713,11 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                             $entityOpciones->setIdPregunta($pregunta);
                                             $entityOpciones->setUpdateAt(new \DateTime());
                                             $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-                                            $entityOpciones->setUpdateBy($currentUser->getUserName());                                
                                             $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                             if($empresa)
-                                               $entityOpciones->setIdempresa($empresa); 
+                                            $entityOpciones->setIdempresa($empresa);
+
+                                            $entityOpciones->setUpdateBy($currentUser->getUserName());                                
                                             $entityManager->persist($entityOpciones);
                                             $entityManager->flush(); 
                                             $idOptions=$entityOpciones->getId();
@@ -840,6 +736,9 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                                     $entityManager->flush();                        
                                                 }
                                             }
+
+                                            
+
                                     }
                                 }   
                             }
@@ -856,7 +755,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     $entitySeccion->setUpdateBy($currentUser->getUserName());
                     $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                     if($empresa)
-                      $entitySeccion->setIdempresa($empresa); 
+                       $entitySeccion->setIdempresa($empresa);
+
                     $entityManager->persist($entitySeccion);
                     $entityManager->flush();
                     foreach($valor["questions"] as $preguntas){
@@ -870,8 +770,9 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $pregunta->setIdInstrumento($entityInstrumento);
                         $pregunta->setSeccion($entitySeccion);
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                        if($empresa)
-                           $pregunta->setIdempresa($empresa); 
+                       if($empresa)
+                          $pregunta->setIdempresa($empresa);
+
                         $entityManager->persist($pregunta);
                         $entityManager->flush();
                         if(isset($preguntas["options"])){
@@ -886,7 +787,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                     $entityOpciones->setUpdateBy($currentUser->getUserName());                                
                                     $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                     if($empresa)
-                                      $entityOpciones->setIdempresa($empresa); 
+                                       $entityOpciones->setIdempresa($empresa);
+
                                     $entityManager->persist($entityOpciones);
                                     $entityManager->flush();                                        
                             }
@@ -923,9 +825,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
         $entityStatus = $entityManager->getRepository(Status::class)->findOneById(1);          
         $entity->setStatusId($entityStatus); 
         $entity->setPublicar(0); 
-        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-            if($empresa)
-                $entity->setIdempresa($empresa); 
        
         if(isset($data["roles"])){
             foreach($entity->getRoles() as $rol){               
@@ -968,7 +867,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     $instrumentoUsuario->setRespondida(0);
                     $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                     if($empresa)
-                       $instrumentoUsuario->setIdempresa($empresa); 
+                       $instrumentoUsuario->setIdempresa($empresa);
+
                     $entityManagerInstrumento->persist($instrumentoUsuario);
                     $entityManagerInstrumento->flush();
                 }
@@ -996,7 +896,7 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     $seccion->setUpdateBy($currentUser->getUserName());
                     $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                     if($empresa)
-                       $seccion->setIdempresa($empresa); 
+                      $seccion->setIdempresa($empresa);
                     $entityManagerSeccion->persist($seccion);
                     $entityManagerSeccion->flush();
                     foreach($valor["questions"] as $question){    
@@ -1010,8 +910,9 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $pregunta->setIdInstrumento($entity);
                         $pregunta->setSeccion($seccion);
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                       if($empresa)
-                          $pregunta->setIdempresa($empresa); 
+                        if($empresa)
+                           $pregunta->setIdempresa($empresa);
+
                         $entityManager->persist($pregunta);
                         $entityManager->flush();    
                         if(isset($question["options"])){
@@ -1025,10 +926,11 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                 $opciones->setIdPregunta($pregunta);
                                 $opciones->setUpdateAt(new \DateTime());
                                 $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-                                $opciones->setUpdateBy($currentUser->getUserName());                                
                                 $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                                 if($empresa)
-                                  $opciones->setIdempresa($empresa); 
+                                  $opciones->setIdempresa($empresa);
+
+                                $opciones->setUpdateBy($currentUser->getUserName());                                
                                 $entityManager->persist($opciones);
                                 $entityManager->flush();    
                             }
@@ -1087,7 +989,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $instrumentoUsuario->setFechaAsignacion(new \DateTime());
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                         if($empresa)
-                          $instrumentoUsuario->setIdempresa($empresa); 
+                           $instrumentoUsuario->setIdempresa($empresa);
+
                         $entityManagerInstrumento->persist($instrumentoUsuario);
                         $entityManagerInstrumento->flush();
                     }
@@ -1156,8 +1059,7 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
     }
 
     public function clonar($id){
-        $em = $this->getEntityManager();
-        $entityManager = $this->getEntityManager();       
+        $em = $this->getEntityManager();        
         $entity= $this->getEntityManager()->createQueryBuilder();
         $entityInstumentosUsuarios= $this->getEntityManager()->createQueryBuilder();
        
@@ -1192,9 +1094,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     $new_instrumentousuario->setFechaInicio(null);
                     $new_instrumentousuario->setFechaFin(null);
                     $new_instrumentousuario->setRespondida(0);
-                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                    if($empresa)
-                       $new_instrumentousuario->setIdempresa($empresa); 
                     $em->persist($new_instrumentousuario); 
                     $em->flush();   
 
@@ -1220,9 +1119,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $new_entity_question = clone $question;
                         $new_entity_question->setIdInstrumento($new_entity);
                         $new_entity_question->setSeccion($new_entity_seccion);
-                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                        if($empresa)
-                           $new_entity_question->setIdempresa($empresa); 
                         $em->persist($new_entity_question); 
                         $em->flush();   
  
@@ -1239,9 +1135,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                             foreach($opciones as $options){
                                 $new_entity_options = clone $options;
                                 $new_entity_options->setIdPregunta($new_entity_question);
-                                $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                if($empresa)
-                                   $new_entity_options->setIdempresa($empresa); 
                                 $em->persist($new_entity_options);
                                 $em->flush();    
 
@@ -1255,9 +1148,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
 
                                         $new_entity_options_cargo = clone $optionsCargo;
                                         $new_entity_options_cargo->setOpcion($new_entity_options);                                               
-                                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                        if($empresa)
-                                           $new_entity_options_cargo->setIdempresa($empresa); 
                                         $em->persist($new_entity_options_cargo);
                                         $em->flush();     
                                     }
@@ -1283,9 +1173,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                     if($question->getSeccion()=="NULL" || $question->getSeccion()==null){
                         $new_entity_question = clone $question;
                         $new_entity_question->setIdInstrumento($new_entity);
-                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                        if($empresa)
-                           $new_entity_question->setIdempresa($empresa); 
                         $em->persist($new_entity_question); 
                         $em->flush();   
 
@@ -1301,9 +1188,6 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                             foreach($opciones as $options){
                                 $new_entity_options = clone $options;
                                 $new_entity_options->setIdPregunta($new_entity_question);
-                                $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                if($empresa)
-                                   $new_entity_options->setIdempresa($empresa); 
                                 $em->persist($new_entity_options);
                                 $em->flush();    
                             }
