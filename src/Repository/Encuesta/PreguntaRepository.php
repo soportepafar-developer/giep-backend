@@ -335,6 +335,8 @@ class PreguntaRepository extends ServiceEntityRepository
 
     private function getOpcionesCargo($opcion)
     {
+
+        //$sql = " select * from opciones_cargo where opcion_id  = " . $opcion->getId();
         $sql = " select * from opciones_cargo oc
         inner join cargo c on oc.id_cargo_id  = c.id
         where oc.opcion_id  = " . $opcion->getId();

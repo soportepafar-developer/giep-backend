@@ -23,6 +23,7 @@ class CoordinacionRepository extends ServiceEntityRepository
         parent::__construct($registry, Coordinacion::class);
     }
 
+
     public function findList()
     {
         $entityManagerDefault = $this->getEntityManager();

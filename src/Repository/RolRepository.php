@@ -321,6 +321,26 @@ class RolRepository extends ServiceEntityRepository
     }
     
     
-
+    public function Roleslist()
+    {
+        $entityManagerDefault = $this->getEntityManager();
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+        $dataRol=[];
+        $data= $this->createQueryBuilder('c')
+            ->orderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+        $eventorol=array();
+        $cont=0;
+        foreach($data as $clave=>$valor){
+            $idemp=$valor->getIdempresa();
+            $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($idemp);
+            $eventorol[$cont]=array("descripcion"=> $valor->getDescripcion(),"idempresa"=> $empresa->getId(),"empresa"=> $empresa->getNombre()
+            );
+             $cont++;
+        }
+        return array($eventorol);
+    }
 
 }

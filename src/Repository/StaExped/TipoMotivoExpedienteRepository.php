@@ -65,9 +65,9 @@ class TipoMotivoExpedienteRepository extends ServiceEntityRepository
             $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
             $entity->setCreateBy($currentUser->getUserName());
             $entity->setCreateAt(new \DateTime());
-            $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-            if($empresa)
-                $entity->setIdempresa($empresa);
+            $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+           if($empresa)
+             $entity->setIdempresa($empresa);
             $entityManager->persist($entity);
             $entityManager->flush();
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);

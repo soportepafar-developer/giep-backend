@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Dto\UserOutPutDto;
 use App\Dto\MenuOutPutDto;
+use App\Dto\CorreoSubjectOutPutDto;
 use App\Entity\Token;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -365,7 +366,7 @@ class UserController extends AbstractController
          *       @OA\Property(property="idDependencia", type="integer", example="2"),
          *       @OA\Property(property="idCargo", type="integer", example="2"),
          *       @OA\Property(property="telefono", type="array", @OA\Items(type="array",@OA\Items()), example={{"numero":"0412345643"},{"numero":"0412345645"}}),
-         *       @OA\Property(property="roles", type="array", @OA\Items(type="array",zz@OA\Items()), example={{"rol":"ROLE_ADMINISTRADOR"},{"rol":"ROLE_ANALISTA"}}),
+         *       @OA\Property(property="roles", type="array", @OA\Items(type="array",@OA\Items()), example={{"rol":"ROLE_ADMINISTRADOR"},{"rol":"ROLE_ANALISTA"}}),
          *       @OA\Property(property="sexo", type="string", example="Femenino"),
          *       @OA\Property(property="direccion", type="string", example="Av ppal Francisco Miranda"),
          *       @OA\Property(property="pais", type="integer", example="1"),
@@ -940,6 +941,110 @@ class UserController extends AbstractController
         } catch (HttpException $e) {
             return new JsonResponse(['msg'=>'Error del Servidor'],500);
         }
+    }
+    
+    /**
+        * @Route("/api/user/empresa", methods={"POST"})
+        * @OA\Post(
+         * summary="Update User Empresa",
+         * description="Update User Empresa",
+         * operationId="updateuserempresa",
+         * tags={"Users"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="Data User",
+         *    @OA\JsonContent(
+         *       required={"idempresa"},
+         *       @OA\Property(property="idempresa", type="integer", example=1)
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */
+    public function updateuserempresa(Request $request,ValidatorInterface $validator,Helper $helper,Correo $correo): Response
+    {   
+        try {
+            $data = json_decode($request->getContent(),true);
+            $repository = $this->getDoctrine()->getRepository(User::class);
+            return $repository->updateuserempresa($data,$validator,$helper,$correo); 
+        } catch (HttpException $e) {
+            return new JsonResponse(['msg'=>'Error del Servidor'],500);
+        }
+    }
+    
+    /**
+        * @Route("/account/contactame", methods={"POST"})
+        * @OA\Post(
+         * summary="Envio Email Contactame",
+         * description="Envio Email Contactame",
+         * operationId="envioemailcontactame",
+         * tags={"Users"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="email",
+         *    @OA\JsonContent(
+         *       required={"email"},
+         *       @OA\Property(property="email", type="string", format="string", example="baezgregoric@gmail.com"),
+         *       @OA\Property(property="nombre", type="string", format="string", example="Luis Mariano Baez G"),
+         *       @OA\Property(property="asunto", type="string", format="string", example="carta de parfar"),
+         *       @OA\Property(property="telefono", type="string", format="string", example="04125950736"),
+         *       @OA\Property(property="mensaje", type="string", format="string", example="el correo parfar para soporte"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */
+
+    public function enviocorreoContactame(Request $request,ValidatorInterface $validator,Helper $helper,EmailFactory $email,Correo $correo):JsonResponse
+    {   
+        try {
+            $em =$this->getDoctrine()->getManager();
+            $data = json_decode($request->getContent(),true);
+            if ($data) {
+                 $urlFront =$this->params->get('urlfrom');
+                 $correo->enviocorreoparfarcontactame($data,"Datos de contacto"."<br><br>"."Nombre y Apellido: ".utf8_decode($data["nombre"])."<br><br>"."Email: ".$data["email"]."<br><br>"."Tlf.: ".$data["telefono"]."<br><br>"."Mensaje: ".utf8_decode($data["mensaje"]) ."<br><br>"."Quedo atento(a). "."<br><br>"."Saludos. ");
+                return new JsonResponse(['msg'=>'Correo Enviado'],200);
+            }else{
+                return new JsonResponse(['msg'=>'Error del Data'],500);
+            }
+        } catch (HttpException $e) {
+            return new JsonResponse(['msg'=>'Error del Servidor'],500);
+        }
+    }
+    
+    /**
+     *  Get an correo subject. 
+     * @Route("/account/correosubject/list", methods={"GET"})
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns user",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=CorreoSubjectOutPutDto::class))
+     *     )
+     * )
+     * @OA\Tag(name="Users")
+     */
+    public function listSubject(UserRepository $repository): JsonResponse
+    {
+        $data = $repository
+        ->findListSubject();
+        if (!$data) {
+            return new JsonResponse(['msg'=>'No existen Registros'],200);  
+        }   
+         return new JsonResponse($data,200);  
     }
 
 }

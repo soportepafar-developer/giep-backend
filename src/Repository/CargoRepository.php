@@ -36,7 +36,7 @@ class CargoRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
         ;
-        $dataCargo=array();
+         $dataCargo=array();
         foreach($data as $clave=>$valor){
             $cargoDto =new CargoOutPutDto();
             $cargoDto->id=$valor->getId();
