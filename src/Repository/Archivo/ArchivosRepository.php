@@ -61,6 +61,7 @@ class ArchivosRepository extends ServiceEntityRepository
         //$query->Where("b.idusuario =".$this->security->getUser()->getId());
         $query->Where("b.idusuario =".$this->security->getUser()->getId()." and a.idempresa = ".$empresa->getId() );
 
+
         if($data['word']!=null){
             //$query->andWhere("a.titulo like '%".$data['word']."%'");
             $query->andWhere("a.titulo like '%".$data['word']."%' or a.nombre_original like '%".$data['word']."%' or a.hashtag like '%".$data['word']."%' ");

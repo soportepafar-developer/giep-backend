@@ -25,7 +25,7 @@ class DependenciaRepository extends ServiceEntityRepository
     }
 
 
-    public function findList()
+   public function findList()
     {
         $entityManagerDefault = $this->getEntityManager();
         $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
@@ -50,7 +50,7 @@ class DependenciaRepository extends ServiceEntityRepository
         }
        return array("data"=>$dataDependencia);
     }
-
+    
     /**
      * Create Dependencia.
      */

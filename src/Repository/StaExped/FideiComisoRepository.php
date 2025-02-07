@@ -102,6 +102,7 @@ class FideiComisoRepository extends ServiceEntityRepository
             $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
             if($empresa)
                $entity->setIdempresa($empresa->getId());
+    
             $entityManager->persist($entity);
             $entityManager->flush();
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
@@ -225,6 +226,9 @@ class FideiComisoRepository extends ServiceEntityRepository
                         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                         $opcioRespuesta->setCreateBy($currentUser->getUserName());
                         $opcioRespuesta->setCreateAt(new \DateTime());
+                        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                         $entityManager->persist($opcioRespuesta);
                         $entityManager->flush();
    
@@ -261,6 +265,9 @@ class FideiComisoRepository extends ServiceEntityRepository
                           $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                           $entity->setCreateBy($currentUser->getUserName());
                           $entity->setCreateAt(new \DateTime());
+                          $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                          if($empresa)
+                            $entity->setIdempresa($empresa);
                           $entityManager->persist($entity);
                           $entityManager->flush();
                           $procesados++;

@@ -187,6 +187,9 @@ class EspecialidadesAreasRepository extends ServiceEntityRepository
                         //crear departamento en caso de que no exista
                         $opcioDepartamento = new Departamento();
                         $opcioDepartamento ->setDescdepartamento($sheetData[$i][1]);
+                        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                         $entityManager->persist($opcioDepartamento);
                         $entityManager->flush();
 
@@ -211,6 +214,9 @@ class EspecialidadesAreasRepository extends ServiceEntityRepository
                       $opcioArea = new Area;
                       $opcioArea ->setIddepartamentos($idrespdeaprt);
                       $opcioArea ->setDescarea($sheetData[$i][2]);
+                      $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                       $entityManager->persist($opcioArea);
                       $entityManager->flush();
  
@@ -248,7 +254,9 @@ class EspecialidadesAreasRepository extends ServiceEntityRepository
                           $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                           $entity->setCreateBy($currentUser->getUserName());
                           $entity->setCreateAt(new \DateTime());
-
+                          $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                          if($empresa)
+                           $entity->setIdempresa($empresa);
                           $entityManager->persist($entity);
                           $entityManager->flush();
                           $procesados++;

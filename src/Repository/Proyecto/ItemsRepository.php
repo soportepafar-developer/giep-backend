@@ -148,6 +148,7 @@ class ItemsRepository extends ServiceEntityRepository
             $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
             if($empresa)
               $entity->setIdempresa($empresa); 
+              
             $entityManager->persist($entity);
             $entityManager->flush();
             $sprinitems = new SprintItem();

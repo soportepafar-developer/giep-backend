@@ -163,6 +163,9 @@ class TokenPdfRepository extends ServiceEntityRepository
         $opcioTokenPdf->setDatosQr($nonmarchivo);
         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
         $opcioTokenPdf->setCreateAt(new \DateTime());
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+        if($empresa)
+          $entity->setIdempresa($empresa);
         $entityManager->persist($opcioTokenPdf);
         $entityManager->flush(); 
 
@@ -291,6 +294,9 @@ switch ($titulotb) {
         $opcioTokenPdf->setDatosQr($nonmarchivo);
         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
         $opcioTokenPdf->setCreateAt(new \DateTime());
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+        if($empresa)
+          $entity->setIdempresa($empresa);
         $entityManager->persist($opcioTokenPdf);
         $entityManager->flush(); 
         break;  
@@ -2608,6 +2614,9 @@ return $dias;
         $idusers = $this->security->getUser()->getId();
         $entityManager = $em;
         $entityManagerDefault = $this->getEntityManager();
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+      if($empresa)
+         $idemp = $empresa->getId();
         $opcioTokenPdf = new TokenPdf();
         $opcioTokenPdf->setIdUser($idusers);
         $opcioTokenPdf->setDatosQr($nonmarchivo);
@@ -2671,3 +2680,4 @@ return $dias;
     }
     */
 }
+

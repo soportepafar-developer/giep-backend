@@ -21,6 +21,7 @@ Use App\Entity\Acreditacion\TipoItem;
  */
 class ItemAcreditacionRepository extends ServiceEntityRepository
 {
+    private $security;
     public function __construct(ManagerRegistry $registry,Security $security)
     {
         $this->security = $security;

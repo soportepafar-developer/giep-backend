@@ -24,6 +24,7 @@ class GerenciaRepository extends ServiceEntityRepository
         parent::__construct($registry, Gerencia::class);
     }
 
+
     public function findList()
     {
         $entityManagerDefault = $this->getEntityManager();

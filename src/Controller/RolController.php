@@ -222,7 +222,30 @@ class RolController extends AbstractController
     }
     
     
-
+    /**
+     * Get roleslist rol. 
+     * @Route("/api/rol/roleslist", methods={"GET"})
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns Rol",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=RolOutPutDto::class))
+     *     )
+     * )
+     * @OA\Tag(name="Roles")
+     * @Security(name="Bearer")
+     */
+    public function findRoleslist(Request $request,RolRepository $repository): JsonResponse
+    {
+        $param = json_decode($request->getContent(),true);
+        $data = $repository
+        ->Roleslist();
+        if (!$data) {
+            return new JsonResponse(['msg'=>'No existen Registros'],200);  
+        }   
+         return new JsonResponse($data,200);  
+    }
 
 
 }

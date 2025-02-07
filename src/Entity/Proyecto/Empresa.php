@@ -49,6 +49,10 @@ class Empresa
      */
     private $updateBy;
 
+     /**
+     * @ORM\Column(type="string", length=1000)
+     */
+    private $url_logo;
 
     public function getId(): ?int
     {
@@ -123,6 +127,18 @@ class Empresa
     public function setUpdateBy(?string $updateBy): self
     {
         $this->updateBy = $updateBy;
+
+        return $this;
+    }
+    
+    public function getUrlLogo(): ?string
+    {
+        return $this->url_logo;
+    }
+
+    public function setUrlLogo(string $url_logo): self
+    {
+        $this->url_logo = $url_logo;
 
         return $this;
     }

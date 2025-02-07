@@ -249,6 +249,9 @@ class VacionesRepository extends ServiceEntityRepository
                         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                         $opcioRespuesta->setCreateBy($currentUser->getUserName());
                         $opcioRespuesta->setCreateAt(new \DateTime());
+                        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                         $entityManager->persist($opcioRespuesta);
                         $entityManager->flush();
    
@@ -281,6 +284,9 @@ class VacionesRepository extends ServiceEntityRepository
                         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                         $opcioRespuesta->setCreateBy($currentUser->getUserName());
                         $opcioRespuesta->setCreateAt(new \DateTime());
+                        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                         $entityManager->persist($opcioRespuesta);
                         $entityManager->flush();
                         $idresp_tipo_vacaciones= $opcioRespuesta->getId();
@@ -314,6 +320,9 @@ class VacionesRepository extends ServiceEntityRepository
                           $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                           $entity->setCreateBy($currentUser->getUserName());
                           $entity->setCreateAt(new \DateTime());
+                           $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                           $entityManager->persist($entity);
                           $entityManager->flush();
 
@@ -343,6 +352,9 @@ class VacionesRepository extends ServiceEntityRepository
                                 $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                                 $entity->setCreateBy($currentUser->getUserName());
                                 $entity->setCreateAt(new \DateTime());
+                                $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                if($empresa)
+                                   $entity->setIdempresa($empresa->getId());
                                 $entityManager->persist($entity);
                                 $entityManager->flush();
                             }

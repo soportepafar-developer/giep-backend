@@ -543,6 +543,9 @@ class DocumentosIngresosRepository extends ServiceEntityRepository
                         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                         $opcioRespuesta->setCreateBy($currentUser->getUserName());
                         $opcioRespuesta->setCreateAt(new \DateTime());
+                        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                         $entityManager->persist($opcioRespuesta);
                         $entityManager->flush();
    
@@ -577,6 +580,9 @@ class DocumentosIngresosRepository extends ServiceEntityRepository
                       $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                       $opcioCargo->setCreateBy($currentUser->getUserName());
                       $opcioCargo->setCreateAt(new \DateTime());
+                      $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                       $entityManager->persist($opcioCargo);
                       $entityManager->flush();
  
@@ -601,6 +607,9 @@ class DocumentosIngresosRepository extends ServiceEntityRepository
                       $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                       $opcioRegion->setCreateBy($currentUser->getUserName());
                       $opcioRegion->setCreateAt(new \DateTime());
+                      $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                       $entityManager->persist($opcioRegion);
                       $entityManager->flush();
  
@@ -627,6 +636,9 @@ class DocumentosIngresosRepository extends ServiceEntityRepository
                         $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                         $opcioDepartamento->setCreateBy($currentUser->getUserName());
                         $opcioDepartamento->setCreateAt(new \DateTime());
+                        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                         $entityManager->persist($opcioDepartamento);
                         $entityManager->flush();
 
@@ -654,6 +666,9 @@ class DocumentosIngresosRepository extends ServiceEntityRepository
                       $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                       $opcioArea->setCreateBy($currentUser->getUserName());
                       $opcioArea->setCreateAt(new \DateTime());
+                      $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                           $entity->setIdempresa($empresa->getId());
                       $entityManager->persist($opcioArea);
                       $entityManager->flush();
  
@@ -699,6 +714,9 @@ class DocumentosIngresosRepository extends ServiceEntityRepository
                           $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
                           $entity->setCreateBy($currentUser->getUserName());
                           $entity->setCreateAt(new \DateTime());
+                          $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                         if($empresa)
+                          $entity->setIdempresa($empresa);
                           $entityManager->persist($entity);
                           $entityManager->flush();
                           $procesados++;
