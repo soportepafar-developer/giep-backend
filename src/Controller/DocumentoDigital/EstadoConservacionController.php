@@ -17,6 +17,7 @@ use Symfony\Component\Validator\Constraints\Json;
 
 use App\Repository\DocumentoDigital\EstadoConservacionRepository;
 use App\Dto\DocumentoDigital\EstadoConservacionOutPutDto;
+use App\Entity\DocumentoDigital\EstadoConservacion;
 
 class EstadoConservacionController extends AbstractController
 {
@@ -44,4 +45,42 @@ class EstadoConservacionController extends AbstractController
         }   
          return new JsonResponse($data,200);  
     }
+
+    /**
+        * @Route("/api/archivodigitalestadoconservacion/estadoconservacion", methods={"POST"})
+        * @OA\Post(
+         * summary="Create Estado Conservacion",
+         * description="Create Estado Conservacion",
+         * operationId="estadoconservacion",
+         * tags={"Archivos Digital"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="parametro",
+         *    @OA\JsonContent(
+         *       required={"page"},
+         *       @OA\Property(property="nombreconservacion", type="string", format="string", example="Excelente"), 
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */    
+
+    public function post(Request $request,ValidatorInterface $validator,Helper $helper): Response
+    {   
+        try {
+            $em = $this->getDoctrine()->getManager('documentodigital');
+            $data = json_decode($request->getContent(),true);
+            $repository = $this->getDoctrine()->getRepository(EstadoConservacion::class);
+            return $repository->post($data,$validator,$helper,$em); 
+        } catch (Exception $e) {
+            return new JsonResponse(['msg'=>'Error del Servidor'],500);
+        }
+    }
+
 }

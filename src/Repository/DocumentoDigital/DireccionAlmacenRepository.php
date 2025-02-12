@@ -51,8 +51,8 @@ class DireccionAlmacenRepository extends ServiceEntityRepository
        return array("data"=>$dataDireciionalmacen);
     }
 
-         /**
-     * Create Tipo Almacen.
+     /**
+     * Create Direccion Almacen.
      */
     public function post($data,$validator,$helper,$em): JsonResponse  {
         $entityManager = $em;

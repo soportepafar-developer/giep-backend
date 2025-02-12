@@ -48,7 +48,7 @@ class DireccionAlmacenController extends AbstractController
     }
 
     /**
-        * @Route("/api/archivodigitaltipoalmacen/direccionalmacen", methods={"POST"})
+        * @Route("/api/archivodigitaldireccionalmacen/direccionalmacen", methods={"POST"})
         * @OA\Post(
          * summary="Create Direccion Almacen",
          * description="Create Direccion Almacen",
