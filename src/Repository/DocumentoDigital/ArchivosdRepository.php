@@ -546,6 +546,22 @@ class ArchivosdRepository extends ServiceEntityRepository
         }
      }
 
+     if($data['idubica4']!="null"){
+        $query = $em->createQueryBuilder();
+        $allAppointmentsQuery = $query->select('Ubicacion')
+        ->from(Ubicacion::class,'Ubicacion')
+        ->Where('Ubicacion.id='.$data['idubica4'])
+        ->addOrderBy('Ubicacion.id', 'ASC')
+        ->getQuery();
+        $queryult = $query->getQuery();
+        $dataUbicacion4 =  $queryult->execute();
+        if($dataUbicacion4!=null){
+            $entity->setIdubica4($dataUbicacion4[0]);
+        }else{
+        return new JsonResponse(['msg'=>'No existen el id Ubicación : '.$data['idubica4']],404);
+        }
+     }
+
 
         
 

@@ -106,7 +106,8 @@ class ArchivoController extends AbstractController
          *                 @OA\Property(property="id_tipo_almacen", type="integer", format="integer", example="1"), 
          *                 @OA\Property(property="idubica1", type="integer", format="integer", example="1"), 
          *                 @OA\Property(property="idubica2", type="integer", format="integer", example="2"),  
-         *                 @OA\Property(property="idubica3", type="integer", format="integer", example="4"),  
+         *                 @OA\Property(property="idubica3", type="integer", format="integer", example="3"),  
+         *                 @OA\Property(property="idubica4", type="integer", format="integer", example="4"),  
          *                 @OA\Property(property="codigo_serie_subserie", type="integer", format="integer", example="1"),   
          *                 @OA\Property(property="id_pais", type="integer", format="integer", example="1"),   
          *                 @OA\Property(property="id_estado", type="integer", format="integer", example="1"),    
@@ -152,7 +153,7 @@ class ArchivoController extends AbstractController
         , 'id_limited_bloqueo' => $request->get('id_limited_bloqueo'), 'folios' => $request->get('folios'), 'num_dela_caja' => $request->get('num_dela_caja')
         , 'Fecha_extrema_inicio' => $request->get('Fecha_extrema_inicio'), 'Fecha_extrema_fin' => $request->get('Fecha_extrema_fin')
         , 'id_tipo_almacen' => $request->get('id_tipo_almacen'), 'idubica1' => $request->get('idubica1')
-        , 'idubica2' => $request->get('idubica2'), 'idubica3' => $request->get('idubica3')
+        , 'idubica2' => $request->get('idubica2'), 'idubica3' => $request->get('idubica3'), 'idubica4' => $request->get('idubica4')
         , 'idregion' => $request->get('idregion'), 'codigo_serie_subserie' => $request->get('codigo_serie_subserie')
         , 'id_status_tipoestado' => $request->get('id_status_tipoestado'), 'id_pais' => $request->get('id_pais')
         , 'id_estado' => $request->get('id_estado'), 'id_ciudad' => $request->get('id_ciudad')

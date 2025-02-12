@@ -7,6 +7,9 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Security;
 use App\Dto\DocumentoDigital\DireccionAlmacenOutPutDto;
+use Symfony\Component\HttpFoundation\JsonResponse;
+Use App\Entity\User;
+use App\Entity\Proyecto\Empresa;
 
 /**
  * @method DireccionAlmacen|null find($id, $lockMode = null, $lockVersion = null)
@@ -46,6 +49,49 @@ class DireccionAlmacenRepository extends ServiceEntityRepository
           $dataDireciionalmacen[]=$profesionDto;
       }
        return array("data"=>$dataDireciionalmacen);
+    }
+
+         /**
+     * Create Tipo Almacen.
+     */
+    public function post($data,$validator,$helper,$em): JsonResponse  {
+        $entityManager = $em;
+        $entity = new DireccionAlmacen();
+        $errors = $validator->validate($entity);
+        if($errors->count() > 0){
+            $errorsString = (string) $errors;
+            return new JsonResponse(['msg'=>$errorsString],500);
+        }else{
+            $entityManagerDefault = $this->getEntityManager();
+            $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
+            $entity->setCreateBy($currentUser->getUserName());
+            $entity->setCreateAt(new \DateTime());
+            $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+            if($empresa)
+                  $entity->setIdempresa($empresa->getId());
+
+            if($data['direccionzona']!="null"){
+                  $entity->setDireccionzona($data['direccionzona']);        
+            }else{
+                  return new JsonResponse(['msg'=>'Verifique Dirección Zona Null '],404);
+            }
+
+            if($data['nombre']!="null"){
+                $entity->setNombre($data['nombre']);        
+            }else{
+                    return new JsonResponse(['msg'=>'Verifique Nombre Null '],404);
+            }
+
+            if($data['telefono']!="null"){
+                $entity->setTelefono($data['telefono']);        
+            }else{
+                    return new JsonResponse(['msg'=>'Verifique Telefono Null '],404);
+            }
+
+            $entityManager->persist($entity);
+            $entityManager->flush();
+            return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
+        }    
     }
 
 

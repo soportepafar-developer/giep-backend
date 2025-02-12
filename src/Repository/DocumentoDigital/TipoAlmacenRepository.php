@@ -3,6 +3,7 @@
 namespace App\Repository\DocumentoDigital;
 
 use App\Entity\DocumentoDigital\TipoAlmacen;
+use App\Entity\DocumentoDigital\DireccionAlmacen;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Security;
@@ -83,19 +84,41 @@ class TipoAlmacenRepository extends ServiceEntityRepository
      */
     public function post($data,$validator,$helper,$em): JsonResponse  {
         $entityManager = $em;
-        $entityManagerDefault = $this->getEntityManager();
-        $entity=$helper->setParametersToEntity(new TipoAlmacen(),$data);
+        $entity = new TipoAlmacen();
         $errors = $validator->validate($entity);
         if($errors->count() > 0){
             $errorsString = (string) $errors;
             return new JsonResponse(['msg'=>$errorsString],500);
         }else{
+
+            $query = $em->createQueryBuilder();
+            $allAppointmentsQuery = $query->select('DireccionAlmacen')
+            ->from(DireccionAlmacen::class,'DireccionAlmacen')
+            ->Where('DireccionAlmacen.id='.$data['iddireccionalmacen'])
+            ->addOrderBy('DireccionAlmacen.id', 'ASC')
+            ->getQuery();
+            $queryult = $query->getQuery();
+            $dataDireccionAlmacen =  $queryult->execute();
+            if($dataDireccionAlmacen!=null){
+                $entity->setIddireccionalmacen($dataDireccionAlmacen[0]);
+            }else{
+            return new JsonResponse(['msg'=>'No existen el id Serie Subserie : '.$data['iddireccionalmacen']],404);
+            }
+
+            $entityManagerDefault = $this->getEntityManager();
             $currentUser =$entityManagerDefault->getRepository(User::class)->find($this->security->getUser()->getId());
             $entity->setCreateBy($currentUser->getUserName());
             $entity->setCreateAt(new \DateTime());
             $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
             if($empresa)
-              $entity->setIdempresa($empresa);
+                  $entity->setIdempresa($empresa->getId());
+
+            if($data['nombrealmacen']!="null"){
+                  $entity->setNombrealmacen($data['nombrealmacen']);        
+            }else{
+                  return new JsonResponse(['msg'=>'Verifique Nombre Almacen Null '],404);
+            }
+
             $entityManager->persist($entity);
             $entityManager->flush();
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);

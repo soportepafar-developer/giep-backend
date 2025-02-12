@@ -85,7 +85,8 @@ class TipoAlmacenController extends AbstractController
          *    description="parametro",
          *    @OA\JsonContent(
          *       required={"page"},
-         *       @OA\Property(property="tiporeposo", type="string", format="string", example="Operación"), 
+         *       @OA\Property(property="iddireccionalmacen", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="nombrealmacen", type="string", format="string", example="Archimovil"), 
          *    ),
          * ),
          * @OA\Response(

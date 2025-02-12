@@ -87,6 +87,12 @@ class ControlArchivoDigital
     private $idubica3;
 
     /**
+     * @ORM\ManyToOne(targetEntity=Ubicacion::class)
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $idubica4;
+
+    /**
      * @ORM\ManyToOne(targetEntity=SubSerie::class)
      * @ORM\JoinColumn(nullable=false)
      */
@@ -308,6 +314,18 @@ class ControlArchivoDigital
     public function setIdubica3(?Ubicacion $idubica3): self
     {
         $this->idubica3 = $idubica3;
+
+        return $this;
+    }
+
+    public function getIdubica4(): ?Ubicacion
+    {
+        return $this->idubica4;
+    }
+
+    public function setIdubica4(?Ubicacion $idubica4): self
+    {
+        $this->idubica4 = $idubica4;
 
         return $this;
     }
