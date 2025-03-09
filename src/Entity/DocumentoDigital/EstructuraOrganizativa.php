@@ -23,14 +23,14 @@ class EstructuraOrganizativa
     private $padre_id;
 
     /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private $nivel_unidad;
-
-    /**
      * @ORM\Column(type="string", length=255)
      */
     private $estructura_organizativa;
+
+    /**
+     * @ORM\Column(type="string", length=10)
+     */
+    private $jerarquia;
 
     public function getId(): ?int
     {
@@ -49,18 +49,6 @@ class EstructuraOrganizativa
         return $this;
     }
 
-    public function getNivelUnidad(): ?string
-    {
-        return $this->nivel_unidad;
-    }
-
-    public function setNivelUnidad(string $nivel_unidad): self
-    {
-        $this->nivel_unidad = $nivel_unidad;
-
-        return $this;
-    }
-
     public function getEstructuraOrganizativa(): ?string
     {
         return $this->estructura_organizativa;
@@ -72,4 +60,17 @@ class EstructuraOrganizativa
 
         return $this;
     }
+
+    public function getJerarquia(): ?string
+    {
+        return $this->jerarquia;
+    }
+
+    public function setJerarquia(string $jerarquia): self
+    {
+        $this->jerarquia = $jerarquia;
+
+        return $this;
+    }
+
 }

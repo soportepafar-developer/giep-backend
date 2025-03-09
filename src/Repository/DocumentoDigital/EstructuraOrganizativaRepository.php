@@ -25,6 +25,7 @@ class EstructuraOrganizativaRepository extends ServiceEntityRepository
         parent::__construct($registry, EstructuraOrganizativa::class);
     }
 
+
     /**
      * Listar Estructura Organizativa.
      */
@@ -32,7 +33,7 @@ class EstructuraOrganizativaRepository extends ServiceEntityRepository
     {
         $dataEstructuraOrganizativa=[];
         $query = $em->createQueryBuilder();
-        $allAppointmentsQuery = $query->select('estructuraorganizativa.id,estructuraorganizativa.nivel_unidad,estructuraorganizativa.estructura_organizativa')
+        $allAppointmentsQuery = $query->select('estructuraorganizativa.id,estructuraorganizativa.jerarquia,estructuraorganizativa.estructura_organizativa')
         ->from(EstructuraOrganizativa::class,'estructuraorganizativa')
         ->where('estructuraorganizativa.padre_id is null')
         ->addOrderBy('estructuraorganizativa.id', 'ASC')
@@ -41,11 +42,12 @@ class EstructuraOrganizativaRepository extends ServiceEntityRepository
         $data =  $queryult->execute();
         $cont=0;
         foreach($data as $clave=>$valor){
-          $profesionDto =new EstructuraNivelUnidadOutPutDto();
+          $profesionDto =new EstructuraOrganizativaOutPutDto();
           $profesionDto->id=$valor["id"];
           //$profesionDto->padre_id=$valor->getPadreId();
-          //$profesionDto->nivelunidad=$valor["nivel_unidad"];
-          $profesionDto->nivelunidad=$valor["estructura_organizativa"];
+          $profesionDto->estructura_organizativa=$valor["estructura_organizativa"];
+          $profesionDto->jerarquia=$valor["jerarquia"];
+
           //$profesionDto->estructuraorganizativa=$valor["estructura_organizativa"];
           //$profesionDto->iddireccionalmacen=($valor->getIddireccionalmacen()!=null)?array("id"=>$valor->getIddireccionalmacen()->getId(),"Nombre"=>$valor->getIddireccionalmacen()->getNombre(),"Direccion"=>$valor->getIddireccionalmacen()->getDireccionzona()):[]; 
 
@@ -54,7 +56,7 @@ class EstructuraOrganizativaRepository extends ServiceEntityRepository
        return array("data"=>$dataEstructuraOrganizativa);
     }
 
-
+   
     /**
      * Listar Estructura Organizativa id.
      */
@@ -65,7 +67,7 @@ class EstructuraOrganizativaRepository extends ServiceEntityRepository
 
         $dataEstructuraOrganizativa=[];
         $query = $em->createQueryBuilder();
-        $allAppointmentsQuery = $query->select('estructuraorganizativa.id,estructuraorganizativa.nivel_unidad,estructuraorganizativa.estructura_organizativa')
+        $allAppointmentsQuery = $query->select('estructuraorganizativa.id,estructuraorganizativa.jerarquia,estructuraorganizativa.estructura_organizativa')
         ->from(EstructuraOrganizativa::class,'estructuraorganizativa')
         ->where("estructuraorganizativa.padre_id ='".$id."'")
         ->addOrderBy('estructuraorganizativa.id', 'ASC')
@@ -78,7 +80,8 @@ class EstructuraOrganizativaRepository extends ServiceEntityRepository
           $profesionDto->id=$valor["id"];
           //$profesionDto->padreid=$id;
           //$profesionDto->nivelunidad=$valor["nivel_unidad"];
-          $profesionDto->estructuraorganizativa=$valor["estructura_organizativa"];
+          $profesionDto->estructura_organizativa=$valor["estructura_organizativa"];
+          $profesionDto->jerarquia=$valor["jerarquia"];
           //$profesionDto->iddireccionalmacen=($valor->getIddireccionalmacen()!=null)?array("id"=>$valor->getIddireccionalmacen()->getId(),"Nombre"=>$valor->getIddireccionalmacen()->getNombre(),"Direccion"=>$valor->getIddireccionalmacen()->getDireccionzona()):[]; 
 
           $dataEstructuraOrganizativa[]=$profesionDto;

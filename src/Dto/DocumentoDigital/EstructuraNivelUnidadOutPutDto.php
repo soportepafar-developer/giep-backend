@@ -19,18 +19,39 @@ class EstructuraNivelUnidadOutPutDto
      */
     public $id;
 
-    /**
-     * @ORM\Column(type="string", length=100)
+     /**
+     * @ORM\Column(type="integer", nullable=true)
      */
-    public $nivelunidad;
+    public $padre_id;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    public $estructura_organizativa;
+
+    /**
+     * @ORM\Column(type="string", length=10)
+     */
+    public $jerarquia;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getNivelUnidad(): ?string
+    public function getPadreId(): ?int
     {
-        return $this->nivelunidad;
+        return $this->padre_id;
     }
+
+    public function getEstructuraOrganizativa(): ?string
+    {
+        return $this->estructura_organizativa;
+    }
+
+    public function getJerarquia(): ?string
+    {
+        return $this->jerarquia;
+    }
+
 }
