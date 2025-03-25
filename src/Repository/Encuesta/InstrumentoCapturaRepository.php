@@ -983,6 +983,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                         $pais= $entityManager->getRepository(Pais::class)->find($data["paisId"]);
                         $estado= $entityManager->getRepository(Estado::class)->find($data["estadoId"]);
                         $instrumentoUsuario->setIdUser($user);
+                        $cargo =$entityManager->getRepository(Cargo::class)->find($user->getIdCargo());
+                        $instrumentoUsuario->setIdCargo($cargo!=null?$cargo:null);
                         $instrumentoUsuario->setEstadoId($estado);
                         $instrumentoUsuario->setPaisId($pais);
                         $instrumentoUsuario->setRespondida(0);

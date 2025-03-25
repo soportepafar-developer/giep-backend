@@ -6,6 +6,7 @@ use App\Entity\Estado;
 use App\Entity\Pais;
 use App\Entity\Proyecto\Empresa;
 use App\Entity\User;
+use App\Entity\Cargo;
 use App\Repository\Encuesta\InstrumentoUsuarioRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -66,6 +67,11 @@ class InstrumentoUsuario
      * @ORM\ManyToOne(targetEntity=Empresa::class, inversedBy="idinstrumentousuario")
      */
     private $idempresa;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Cargo::class)
+     */
+    private $idCargo;
 
     public function getId(): ?int
     {
@@ -177,6 +183,17 @@ class InstrumentoUsuario
     {
         $this->idempresa = $idempresa;
 
+        return $this;
+    }
+
+    public function getIdCargo(): ?Cargo
+    {
+        return $this->idCargo;
+    }
+
+    public function setIdCargo(?Cargo $idCargo): self
+    {
+        $this->idCargo = $idCargo;
         return $this;
     }
 }
