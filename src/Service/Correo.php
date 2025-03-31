@@ -29,7 +29,7 @@ class Correo
             $headers = "MIME-Version: 1.0\r\n"; 
             $headers .= "Content-type: text/html; charset=iso-8859-1\r\n"; 
             //dirección del remitente 
-            $headers .= "From: Dempre <dempre@pafar.com.ve>\r\n"; 
+            $headers .= "From: Dempre <admingiep@pafar.com.ve>\r\n"; 
             //direcciones que recibirán copia oculta 
             //$headers .= "Bcc: sirjcbg1@gmail.com\r\n"; 
             mail($destinatario,$asunto,$cuerpo,$headers); 
@@ -55,7 +55,7 @@ class Correo
             $headers = "MIME-Version: 1.0\r\n"; 
             $headers .= "Content-type: text/html; charset=iso-8859-1\r\n"; 
             //dirección del remitente 
-            $headers .= "From: ". $correodestino["nombre"] ." <mariano@pafar.com.ve>\r\n"; 
+            $headers .= "From: ". $correodestino["nombre"] ." <admingiep@pafar.com.ve>\r\n"; 
             //direcciones que recibirán copia oculta 
             //$headers .= "Bcc: sirjcbg1@gmail.com\r\n"; 
             mail($destinatario,$asunto,$cuerpo,$headers); 
@@ -86,7 +86,7 @@ class Correo
             $headers .= "Content-Type: multipart/mixed; boundary=\"boundary\"\r\n";
 
             //dirección del remitente 
-            $headers .= "From: Dempre <dempre@pafar.com.ve>\r\n"; 
+            $headers .= "From: Dempre <admingiep@pafar.com.ve>\r\n"; 
             //direcciones que recibirán copia oculta 
             //$headers .= "Bcc: sirjcbg1@gmail.com\r\n";
           
@@ -132,7 +132,7 @@ class Correo
             $headers .= "Content-Type: multipart/mixed; boundary=\"boundary\"\r\n";
 
             //dirección del remitente 
-            $headers .= "From: Dempre <dempre@pafar.com.ve>\r\n"; 
+            $headers .= "From: Dempre <admingiep@pafar.com.ve>\r\n"; 
             //direcciones que recibirán copia oculta 
             //$headers .= "Bcc: sirjcbg1@gmail.com\r\n";
           
@@ -175,7 +175,7 @@ class Correo
         $headers .= "Content-type: text/html; charset=iso-8859-1\r\n"; 
         //dirección del remitente 
         //$headers .= "From: ". $correodestino["nombre"] ." <mariano@pafar.com.ve>\r\n"; 
-        $headers .= "From: ". $correodestino["nombre"] ." <dempre@pafar.com.ve>\r\n"; 
+        $headers .= "From: ". $correodestino["nombre"] ." <admingiep@pafar.com.ve>\r\n"; 
 
         //direcciones que recibirán copia oculta 
         //$headers .= "Bcc: sirjcbg1@gmail.com\r\n"; 
