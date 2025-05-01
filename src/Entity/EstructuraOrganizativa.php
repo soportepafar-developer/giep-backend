@@ -1,8 +1,7 @@
 <?php
 
 namespace App\Entity;
-
-use App\Repository\DocumentoDigital\EstructuraOrganizativaRepository;
+use App\Repository\EstructuraOrganizativaRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
