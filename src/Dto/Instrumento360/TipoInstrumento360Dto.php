@@ -44,7 +44,7 @@ class TipoInstrumento360Dto
     public $empresa;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Status::class)
+     * @ORM\Column(type="integer")
      */
     public $status;
 

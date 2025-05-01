@@ -14,23 +14,25 @@ class CompetenciaCargoUnidadDto
     public $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Cargo::class)
+     * @ORM\Column(type="integer")
      */
     public $cargo;
 
     /**
-     * @ORM\ManyToOne(targetEntity=NivelDominio::class)
+     * @ORM\Column(type="integer")
      */
+
     public $dominio;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Competencia360::class)
+     * @ORM\Column(type="integer")
      */
     public $competencia;
 
     /**
-     * @ORM\ManyToOne(targetEntity=EstructuraOrganizativa::class)
+     * @ORM\Column(type="integer")
      */
+
     public $unidad;
 
     /**
@@ -43,25 +45,25 @@ class CompetenciaCargoUnidadDto
         return $this->id;
     }
 
-    public function getCargo(): ?Cargo
+    public function getCargo(): ?int
     {
         return $this->cargo;
     }
 
 
-    public function getDominio(): ?NivelDominio
+    public function getDominio(): ?int
     {
         return $this->dominio;
     }
 
 
-    public function getCompetencia(): ?Competencia360
+    public function getCompetencia(): ?int
     {
         return $this->competencia;
     }
 
 
-    public function getUnidad(): ?EstructuraOrganizativa
+    public function getUnidad(): ?int
     {
         return $this->unidad;
     }
