@@ -56,7 +56,7 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
             $competenciaCargoUnidadDto =new CompetenciaCargoUnidadDto();
             $competenciaCargoUnidadDto->id=$valor->getId();
             if($valor->getCargo()!=null){
-                $competenciaCargoUnidadDto->cargo=array("id"=>$valor->getCargp()->getId(),"label"=>$valor->getCargo()->getNombre());
+                $competenciaCargoUnidadDto->cargo=array("id"=>$valor->getCargo()->getId(),"label"=>$valor->getCargo()->getNombre());
             }else{
                 $competenciaCargoUnidadDto->cargo=null;
             }
