@@ -1343,6 +1343,68 @@ class UserRepository extends ServiceEntityRepository
         return new JsonResponse(['msg'=>'Fin de la actualización satisfactoriamente: '],200);
     }
 
+   /**
+     * Actualizar cargos de usuarios.
+     */
+    public function findActualizarUserCargos($data,$url){
+        $entityManager = $this->getEntityManager();
+         //where a.presidencia='Presidencia'
+        $sql = " SELECT a.* FROM `actualizar_usuarios_cargos` a 
+        order by id asc ";
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result= $stmt->fetchAll();
+        //$result= $stmt->executeQuery();
+        $dataTotal=array();
+        $colorprogress='';
+        $nivelactual=0;
+        $cedula=0;
+        foreach($result as $claveResult=>$valorResult){
+            $id_cargo= $valorResult["id_cargo_prodc"];
+            //$id_cargo= $valorResult["id_cargo_stage"];
+            $cedula= $valorResult["cedula"];
+
+            $sqluser = " SELECT u.* FROM `user` u 
+             where u.numero_documento='".$cedula."';";
+            $connuser = $this->getEntityManager()->getConnection();
+            $stmtuser = $connuser->prepare($sqluser);
+            $stmtuser->execute();
+            $resultuser= $stmtuser->fetchAll();
+            if ($resultuser) {
+           
+                //$nivelactual = $resultuser[0]["id"];
+
+                $sql3 = "update user set id_cargo_id='".$id_cargo."' where numero_documento='".$cedula."' ";
+                $conn3 = $this->getEntityManager()->getConnection();
+                $stmt3 = $conn3->prepare($sql3);
+                $stmt3->execute(); 
+
+                //si no existe el usuario
+                $sqlexist = "update actualizar_usuarios_cargos set swexiste=1 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+
+
+            }else{
+                //si no existe el usuario
+                $sqlexist = "update actualizar_usuarios_cargos set swexiste=0 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+                
+            }
+
+           // break;
+        }
+        return new JsonResponse(['msg'=>'Fin de la actualización satisfactoriamente: '],200);
+    }
+
+
+
+
    public function findEstructuraFinal($idvp,$buscanivel){
         $entityManager = $this->getEntityManager();
         $sql1='';
