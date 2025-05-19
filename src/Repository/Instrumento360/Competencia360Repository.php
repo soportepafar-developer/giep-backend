@@ -1,8 +1,11 @@
 <?php
 
 namespace App\Repository\Instrumento360;
-
+Use App\Entity\Cargo;
 use App\Entity\Instrumento360\Competencia360;
+use App\Entity\Instrumento360\Competencia360NivelPonderacion;
+Use App\Entity\Nivel;
+Use App\Entity\Instrumento360\Competencia360CargoEscala;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -60,7 +63,8 @@ class Competencia360Repository extends ServiceEntityRepository
             $tipoDto->nombre=$valor->getNombre();
             $tipoDto->descripcion=$valor->getDescripcion();
             $tipoDto->tipo=$valor->getTipo();
-
+            $tipoDto->escalaPonderacion=$valor->getEscalaPonderacion();
+        
             if($valor->getEmpresa()!=null){
                 $tipoDto->empresa=array("id"=>$valor->getEmpresa()->getId(),"label"=>$valor->getEmpresa()->getNombre());
             }else{
@@ -95,6 +99,38 @@ class Competencia360Repository extends ServiceEntityRepository
                 $entity->setEmpresa($empresa);
             $entityManager->persist($entity);
             $entityManager->flush();
+            if($data["escalas"]!=null)    
+                foreach($data["escalas"] as $valor){
+                    $entityCargo = $entityManager->getRepository(Cargo::class)->find($valor["idCargo"]);          
+                    if($entityCargo!=null){
+                        $categoriaCargoEscala= new Competencia360CargoEscala();
+                        $categoriaCargoEscala->setCargo($entityCargo);
+                        $categoriaCargoEscala->setCompetencia($entity);         
+                        $categoriaCargoEscala->setEscala($valor["escala"]);   
+                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                        $categoriaCargoEscala->setIdempresa($empresa);         
+                        $entityManager->persist($categoriaCargoEscala);
+                        $entityManager->flush();
+            
+                    }
+                }
+            if($data["ponderaciones"]!=null)    
+                foreach($data["ponderaciones"] as $valor){
+                    $entityNivel = $entityManager->getRepository(Nivel::class)->find($valor["idNivel"]);          
+                    if($entityNivel!=null){
+                        $competencia360NivelPonderacion= new Competencia360NivelPonderacion();
+                        $competencia360NivelPonderacion->setNivel($entityNivel);
+                        $competencia360NivelPonderacion->setCompetencia($entity);         
+                        $competencia360NivelPonderacion->setPonderacion($valor["ponderacion"]);         
+                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                            $competencia360NivelPonderacion->setIdempresa($empresa);         
+                        $entityManager->persist($competencia360NivelPonderacion);
+                        $entityManager->flush();
+                    }
+                }
+    
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
         }    
     }
@@ -121,6 +157,27 @@ class Competencia360Repository extends ServiceEntityRepository
             $tipoInstrumentoDto->nombre=$valor->getNombre();
             $tipoInstrumentoDto->descripcion=$valor->getDescripcion();
             $tipoInstrumentoDto->tipo=$valor->getTipo();
+            $tipoInstrumentoDto->escalaPonderacion=$valor->getEscalaPonderacion();
+        
+            $dataArrayCompetenciaEscala=array();
+            $dataArrayCompetenciaPonderacion=array();
+            foreach($valor->getCompetenciaCargoEscala() as $competenciaCargoEscala){
+                $dataArrayCompetenciaEscala[]=array(
+                    "idCargo"=>$competenciaCargoEscala->getCargo()->getId(),
+                    "nombreCargo"=>$competenciaCargoEscala->getCargo()->getDescripcion(),
+                    "escala"=>$competenciaCargoEscala->getEscala()
+                );
+            }
+            $tipoInstrumentoDto->escalas=count($dataArrayCompetenciaEscala)>0?$dataArrayCompetenciaEscala:null;
+           
+            foreach($valor->getCompetenciasNivelPonderacion() as $competenciaNivelPonderacion){
+                $dataArrayCompetenciaPonderacion[]=array(
+                    "idNivel"=>$competenciaNivelPonderacion->getNivel()->getId(),
+                    "nombreNivel"=>$competenciaNivelPonderacion->getNivel()->getNombre(),
+                    "ponderacion"=>$competenciaNivelPonderacion->getPonderacion()
+                );
+            }
+            $tipoInstrumentoDto->ponderaciones=count($dataArrayCompetenciaPonderacion)>0?$dataArrayCompetenciaPonderacion:null;
 
             if($valor->getEmpresa()!=null){
                 $tipoInstrumentoDto->empresa=array("id"=>$valor->getEmpresa()->getId(),"label"=>$valor->getEmpresa()->getNombre());
@@ -161,6 +218,49 @@ class Competencia360Repository extends ServiceEntityRepository
                 $entity->setEmpresa($empresa);   
             $entityManager->persist($entity);
             $entityManager->flush();
+
+            foreach($entity->getCompetenciaCargoEscala() as $competenciaCargoEscala){
+                $entityManager->remove($competenciaCargoEscala);
+                $entityManager->flush(); 
+            }
+
+            foreach($entity->getCompetenciasNivelPonderacion() as $competenciaNivelPonderacion){
+                $entityManager->remove($competenciaNivelPonderacion);
+                $entityManager->flush(); 
+            }
+            if($data["escalas"]!=null)    
+                foreach($data["escalas"] as $valor){
+                    $entityCargo = $entityManager->getRepository(Cargo::class)->find($valor["idCargo"]);          
+                    if($entityCargo!=null){
+                        $categoriaCargoEscala= new Competencia360CargoEscala();
+                        $categoriaCargoEscala->setCargo($entityCargo);
+                        $categoriaCargoEscala->setCompetencia($entity);         
+                        $categoriaCargoEscala->setEscala($valor["escala"]);   
+                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                        $categoriaCargoEscala->setIdempresa($empresa);         
+                        $entityManager->persist($categoriaCargoEscala);
+                        $entityManager->flush();
+            
+                    }
+                }
+            if($data["ponderaciones"]!=null)    
+                foreach($data["ponderaciones"] as $valor){
+                    $entityNivel = $entityManager->getRepository(Nivel::class)->find($valor["idNivel"]);          
+                    if($entityNivel!=null){
+                        $competencia360NivelPonderacion= new Competencia360NivelPonderacion();
+                        $competencia360NivelPonderacion->setNivel($entityNivel);
+                        $competencia360NivelPonderacion->setCompetencia($entity);         
+                        $competencia360NivelPonderacion->setPonderacion($valor["ponderacion"]);         
+                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                        if($empresa)
+                            $competencia360NivelPonderacion->setIdempresa($empresa);         
+                        $entityManager->persist($competencia360NivelPonderacion);
+                        $entityManager->flush();
+                    }
+                }
+
+
             return new JsonResponse(['msg'=>'Registro Actualizado: '.$entity->getId()],200);
         }
 

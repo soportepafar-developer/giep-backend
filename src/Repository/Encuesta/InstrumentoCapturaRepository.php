@@ -1058,146 +1058,79 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
 
     }
 
-    public function clonar($id){
-        $em = $this->getEntityManager();        
-        $entity= $this->getEntityManager()->createQueryBuilder();
-        $entityInstumentosUsuarios= $this->getEntityManager()->createQueryBuilder();
-       
-        $encuestaData= $entity->select("a,f,p,r")
-            ->from("App\Entity\Encuesta\InstrumentoCaptura","a")
-            ->leftjoin('a.seccions', 'f')
-            ->leftjoin('f.preguntas', 'p')
-            ->leftjoin('p.opciones', 'r')
-            ->andWhere('a.id='.$id)
-            ->orderBy('a.id', 'ASC')
+    public function clonar($id) {
+        $em = $this->getEntityManager();
+        
+        // 1. Cargar todo en una sola consulta usando JOIN FETCH
+        $encuestaData = $em->createQueryBuilder()
+            ->select('a, f, p, r, oc')
+            ->from("App\Entity\Encuesta\InstrumentoCaptura", "a")
+            ->leftJoin('a.seccions', 'f')
+            ->leftJoin('f.preguntas', 'p')
+            ->leftJoin('p.opciones', 'r')
+            ->leftJoin('r.opcionesCargos', 'oc')
+            ->where('a.id = :id')
+            ->setParameter('id', $id)
             ->getQuery()
             ->getResult();
-        $new_entity = clone $encuestaData[0];
-        $new_entity->setFechaPublicacion(null);
-        $new_entity->setFechaVigencia(new \DateTime('now +1 day'));
-        $new_entity->setOrden(1);
-        $new_entity->setPublicar(0);
-        $em->persist($new_entity);
-        $em->flush();
 
-        $instrumentoUsuarios= $entityInstumentosUsuarios->select("a")
-            ->from("App\Entity\Encuesta\InstrumentoUsuario","a")
-            ->Where('a.IdInstrumento='.$id)
-            ->orderBy('a.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-            if(count($instrumentoUsuarios)>=0){
-                foreach($instrumentoUsuarios as $instrumentosUsuario){
-                    $new_instrumentousuario = clone $instrumentosUsuario;
-                    $new_instrumentousuario->setIdInstrumento($new_entity);
-                    $new_instrumentousuario->setFechaAsignacion(new \DateTime());
-                    $new_instrumentousuario->setFechaInicio(null);
-                    $new_instrumentousuario->setFechaFin(null);
-                    $new_instrumentousuario->setRespondida(0);
-                    $em->persist($new_instrumentousuario); 
-                    $em->flush();   
+        if (empty($encuestaData)) {
+            return null;
+        }
 
-                }
-            }        
-        if($encuestaData[0]->getSeccions()!=null){
-            foreach($encuestaData[0]->getSeccions() as $valor){
-                $new_entity_seccion = clone $valor;
-                $new_entity->addSeccion($new_entity_seccion);
-                $em->persist($new_entity_seccion);
-                $em->flush();    
-                $entity= $this->getEntityManager()->createQueryBuilder();   
-                $preguntas= $entity->select("a")
-                ->from("App\Entity\Encuesta\Pregunta","a")
-                ->Where('a.idInstrumento='.$id)
-                ->andWhere('a.seccion='.$valor->getId())
-                ->orderBy('a.id', 'ASC')
-                ->getQuery()
-                ->getResult();
-    
-                if(count($preguntas)>=0){
-                    foreach($preguntas as $question){
-                        $new_entity_question = clone $question;
-                        $new_entity_question->setIdInstrumento($new_entity);
-                        $new_entity_question->setSeccion($new_entity_seccion);
-                        $em->persist($new_entity_question); 
-                        $em->flush();   
- 
-                        $entity= $this->getEntityManager()->createQueryBuilder();   
-                        $opciones= $entity->select("a")
-                        ->from("App\Entity\Encuesta\Opciones","a")
-                        ->leftJoin("a.opcionesCargos","b")
-                        ->Where('a.idPregunta='.$question->getId())
-                        ->orderBy('a.id', 'ASC')
-                        ->getQuery()
-                        ->getResult();
-                        //Aca
-                        if($opciones!=null){
-                            foreach($opciones as $options){
-                                $new_entity_options = clone $options;
-                                $new_entity_options->setIdPregunta($new_entity_question);
-                                $em->persist($new_entity_options);
-                                $em->flush();    
-
-                                // $sql = " select * from opciones_cargo where opcion_id  = " . $options->getId();
-                                // $opciones = [];
-                                // $conn = $this->getEntityManager()->getConnection();
-                                // $stmt = $conn->prepare($sql);
-                                // $stmt->execute();
-                                // $entityOpcionesCargo= $stmt->fetchAll();
-                                    foreach($options->getOpcionesCargos() as $optionsCargo){
-
-                                        $new_entity_options_cargo = clone $optionsCargo;
-                                        $new_entity_options_cargo->setOpcion($new_entity_options);                                               
-                                        $em->persist($new_entity_options_cargo);
-                                        $em->flush();     
-                                    }
-                            }
+        $originalEntity = $encuestaData[0];
+        
+        // 2. Clonar la entidad principal
+        $newEntity = clone $originalEntity;
+        $newEntity->setFechaPublicacion(null);
+        $newEntity->setFechaVigencia(new \DateTime('now +1 day'));
+        $newEntity->setOrden(1);
+        $newEntity->setPublicar(0);
+        
+        // 3. Clonar secciones y sus relaciones en una sola transacción
+        $em->beginTransaction();
+        try {
+            $em->persist($newEntity);
+            
+            // Clonar secciones
+            foreach ($originalEntity->getSeccions() as $seccion) {
+                $newSeccion = clone $seccion;
+                $newEntity->addSeccion($newSeccion);
+                $em->persist($newSeccion);
+                
+                // Clonar preguntas
+                foreach ($seccion->getPreguntas() as $pregunta) {
+                    $newPregunta = clone $pregunta;
+                    $newPregunta->setIdInstrumento($newEntity);
+                    $newPregunta->setSeccion($newSeccion);
+                    $em->persist($newPregunta);
+                    
+                    // Clonar opciones
+                    foreach ($pregunta->getOpciones() as $opcion) {
+                        $newOpcion = clone $opcion;
+                        $newOpcion->setIdPregunta($newPregunta);
+                        $em->persist($newOpcion);
+                        
+                        // Clonar opcionesCargo
+                        foreach ($opcion->getOpcionesCargos() as $opcionCargo) {
+                            $newOpcionCargo = clone $opcionCargo;
+                            $newOpcionCargo->setOpcion($newOpcion);
+                            $em->persist($newOpcionCargo);
                         }
                     }
                 }
             }
-            return $new_entity->getId();
+            
+            // 4. Hacer un solo flush al final
+            $em->flush();
+            $em->commit();
+            
+            return $newEntity->getId();
+            
+        } catch (\Exception $e) {
+            $em->rollback();
+            throw $e;
         }
-        if($encuestaData[0]->getPreguntas()!=null){
- 
-            $entity= $this->getEntityManager()->createQueryBuilder();   
-            $preguntas= $entity->select("a")
-            ->from("App\Entity\Encuesta\Pregunta","a")
-            ->Where('a.idInstrumento='.$id)
-            ->orderBy('a.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-            if(count($preguntas)>=0){
-                foreach($preguntas as $question){
-                    if($question->getSeccion()=="NULL" || $question->getSeccion()==null){
-                        $new_entity_question = clone $question;
-                        $new_entity_question->setIdInstrumento($new_entity);
-                        $em->persist($new_entity_question); 
-                        $em->flush();   
-
-                        $entity= $this->getEntityManager()->createQueryBuilder();   
-                        $opciones= $entity->select("a")
-                        ->from("App\Entity\Encuesta\Opciones","a")
-                        ->Where('a.idPregunta='.$question->getId())
-                        ->orderBy('a.id', 'ASC')
-                        ->getQuery()
-                        ->getResult();
-        
-                        if($opciones!=null){
-                            foreach($opciones as $options){
-                                $new_entity_options = clone $options;
-                                $new_entity_options->setIdPregunta($new_entity_question);
-                                $em->persist($new_entity_options);
-                                $em->flush();    
-                            }
-                        }
-                    }
-                }
-            }
-
-        }
-        
     }
 
 

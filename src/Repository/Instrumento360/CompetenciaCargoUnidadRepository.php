@@ -56,7 +56,7 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
             $competenciaCargoUnidadDto =new CompetenciaCargoUnidadDto();
             $competenciaCargoUnidadDto->id=$valor->getId();
             if($valor->getCargo()!=null){
-                $competenciaCargoUnidadDto->cargo=array("id"=>$valor->getCargo()->getId(),"label"=>$valor->getCargo()->getNombre());
+                $competenciaCargoUnidadDto->cargo=array("id"=>$valor->getCargo()->getId(),"label"=>$valor->getCargo()->getDescripcion());
             }else{
                 $competenciaCargoUnidadDto->cargo=null;
             }
@@ -66,14 +66,14 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
                 $competenciaCargoUnidadDto->dominio=null;
             }
             if($valor->getUnidad()!=null){
-                $competenciaCargoUnidadDto->unidad=array("id"=>$valor->getUnidad()->getId(),"label"=>$valor->getUnidad()->getNombre());
+                $competenciaCargoUnidadDto->unidad=array("id"=>$valor->getUnidad()->getId(),"label"=>$valor->getUnidad()->getEstructuraOrganizativa());
             }else{
                 $competenciaCargoUnidadDto->unidad=null;
             }
             if($valor->getCompetencia()!=null){
-                $competenciaCargoUnidadDto->unidad=array("id"=>$valor->getCompetencia()->getId(),"label"=>$valor->getCompetencia()->getNombre());
+                $competenciaCargoUnidadDto->competencia=array("id"=>$valor->getCompetencia()->getId(),"label"=>$valor->getCompetencia()->getNombre());
             }else{
-                $competenciaCargoUnidadDto->unidad=null;
+                $competenciaCargoUnidadDto->competencia=null;
             }
             $competenciaCargoUnidadDto->prioridad=$valor->getPrioridad();
             $data[]=$competenciaCargoUnidadDto;
@@ -94,8 +94,8 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
             return new JsonResponse(['msg'=>$errorsString],500);
         }else{
             $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-            $entity->setCreateBy($currentUser->getUserName());
-            $entity->setUpdateBy($currentUser->getUserName());
+            // $entity->setCreateBy($currentUser->getUserName());
+            // $entity->setUpdateBy($currentUser->getUserName());
                 
             $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
             if($empresa)
@@ -133,7 +133,7 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
                 $competenciaCargoUnidadDto->dominio=null;
             }
             if($valor->getUnidad()!=null){
-                $competenciaCargoUnidadDto->unidad=array("id"=>$valor->getUnidad()->getId(),"label"=>$valor->getUnidad()->getNombre());
+                $competenciaCargoUnidadDto->unidad=array("id"=>$valor->getUnidad()->getId(),"label"=>$valor->getUnidad()->getEstructuraOrganizativa());
             }else{
                 $competenciaCargoUnidadDto->unidad=null;
             }
@@ -160,8 +160,8 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
         }
         $entity=$helper->setParametersToEntity($entity,$data);
         $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-        $entity->setUpdateBy($currentUser->getUserName());
-        $entity->setUpdateAt(new \DateTime());
+        // $entity->setUpdateBy($currentUser->getUserName());
+        // $entity->setUpdateAt(new \DateTime());
 
         $errors = $validator->validate($entity);
         if($errors->count() > 0){

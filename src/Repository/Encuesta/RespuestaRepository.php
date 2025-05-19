@@ -804,7 +804,7 @@ class RespuestaRepository extends ServiceEntityRepository
             }
     
             $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,a.fecha_inicio,
-            f.nombre as pais,e.nombre as estado,c.nombre as ciudad,a.id_cargo_id
+            f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id
             ,m.descripcion as dependencia, n.nombre gerencia,o.nombre coordinacion,
             p.descripcion cargo  
             from instrumento_usuario a inner join user b on a.id_user_id = b.id
@@ -814,8 +814,7 @@ class RespuestaRepository extends ServiceEntityRepository
             left join dependencia m on b.id_dependencia_id = m.id left join gerencia n on 
             b.id_gerencia_id = n.nombre left join coordinacion o on b.id_coordinacion_id = o.id
             left join cargo p on b.id_cargo_id = p.id
-             ".$where . " and b.id_cargo_id in(3,4,5,6)  and a.respondida=1 LIMIT ". $page_first_result . ',' . $results_per_page;  
-    
+             ".$where . " and a.respondida=1 LIMIT ". $page_first_result . ',' . $results_per_page;    
         }else{
             $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,
             case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,

@@ -54,6 +54,29 @@ class Competencia360Dto
     */
     public $empresa;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    public $escalaPonderacion;
+
+    /**
+    * @OA\Property(
+    *      type="array",
+    *      @OA\Items(
+    *          type="array",
+    *          @OA\Items()
+    *      ),
+    *      description="opcionesMenus"
+    * )     */
+
+    public $escalas;
+
+
+    public function getEscalaPonderacion(): ?int
+    {
+        return $this->escalaPonderacion;
+    }
+
 
     public function getId(): ?int
     {

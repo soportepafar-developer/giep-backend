@@ -60,11 +60,44 @@ class Competencia360
      */
     private $empresa;
 
- 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $escalaPonderacion;
+
+
+    /**
+     * @ORM\OneToMany(targetEntity=Competencia360CargoEscala::class, mappedBy="competencia")
+     */
+    private $competenciasCargoEscalas;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Competencia360NivelPonderacion::class, mappedBy="competencia")
+     */
+    private $competenciasNivelPonderacion;
+
 
     public function __construct()
     {
         $this->nivelDominio = new ArrayCollection();
+        $this->competenciasCargoEscalas =new ArrayCollection();
+        $this->competenciasNivelPonderacion=new ArrayCollection();
+    }
+
+    /**
+     * @return Collection|Competencia360CargoEscala[]
+    */
+    public function getCompetenciaCargoEscala(): Collection
+    {
+        return $this->competenciasCargoEscalas;
+    }
+
+    /**
+     * @return Collection|Competencia360NivelPonderacion[]
+    */
+    public function getCompetenciasNivelPonderacion(): Collection
+    {
+        return $this->competenciasNivelPonderacion;
     }
 
     public function getId(): ?int
@@ -167,5 +200,18 @@ class Competencia360
 
         return $this;
     }
+
+    public function getEscalaPonderacion(): ?int
+    {
+        return $this->escalaPonderacion;
+    }
+
+    public function setEscalaPonderacion(int $escalaPonderacion): self
+    {
+        $this->escalaPonderacion = $escalaPonderacion;
+
+        return $this;
+    }
+
 
 }
