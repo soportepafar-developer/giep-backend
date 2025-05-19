@@ -128,7 +128,8 @@ class CargoController extends AbstractController
          *    @OA\JsonContent(
          *       required={"descripcion"},
          *       @OA\Property(property="descripcion", type="string", example="Analista"),
-         *       @OA\Property(property="nivel", type="integer", example="1")
+         *       @OA\Property(property="nivel", type="integer", example="1"),
+         *       @OA\Property(property="tipo", type="integer", example="0")
          *    ),
          * ),
          * @OA\Response(
@@ -213,6 +214,30 @@ class CargoController extends AbstractController
         } catch (Exception $e) {
             return new JsonResponse(['msg'=>'Error del Servidor'],500);
         }
+    }
+
+    /**
+     *  Get list cargos Tipos. 
+     * @Route("/api/cargotipo/{id}", methods={"GET"})
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns Cargos Tipos",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=CargoOutPutDto::class))
+     *     )
+     * )
+     * @OA\Tag(name="Cargos")
+     * @Security(name="Bearer")
+     */
+    public function findListTipo($id,Request $request,CargoRepository $repository): JsonResponse
+    {
+        $data = $repository
+        ->findListTipo($id);
+        if (!$data) {
+            return new JsonResponse(['msg'=>'No existen Registros'],200);  
+        }   
+         return new JsonResponse($data,200);  
     }
 
 }

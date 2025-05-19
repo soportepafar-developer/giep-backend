@@ -71,6 +71,11 @@ class Cargo
      */
     private $idempresa;
 
+     /**
+     * @ORM\Column(type="integer")
+     */
+    private $tipo;
+
     public function __construct()
     {
         $this->opcionesCargos = new ArrayCollection();
@@ -234,6 +239,18 @@ class Cargo
     public function setIdempresa(?Empresa $idempresa): self
     {
         $this->idempresa = $idempresa;
+
+        return $this;
+    }
+
+    public function getTipo(): ?int
+    {
+        return $this->tipo;
+    }
+
+    public function setTipo(int $tipo): self
+    {
+        $this->tipo = $tipo;
 
         return $this;
     }
