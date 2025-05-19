@@ -189,5 +189,27 @@ class CargoRepository extends ServiceEntityRepository
  
     }
 
-
+    public function findListTipo($id)
+    {
+        $entityManagerDefault = $this->getEntityManager();
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+        $data= $this->createQueryBuilder('c')
+            ->where('c.IdStatus = 1')
+            ->andWhere('c.tipo ='.$id)      
+            ->andWhere('c.idempresa ='.$empresa->getId())      
+            ->orderBy('c.descripcion', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+         $dataCargo=array();
+        foreach($data as $clave=>$valor){
+            $cargoDto =new CargoOutPutDto();
+            $cargoDto->id=$valor->getId();
+            $cargoDto->descripcion=$valor->getDescripcion();
+            $cargoDto->status=($valor->getIdStatus()!=null)?array("id"=>$valor->getIdStatus()->getId(),"Descripcion"=>$valor->getIdStatus()->getDescripcion()):[];        
+            $cargoDto->tipo=$valor->getTipo();
+            $dataCargo[]=$cargoDto;
+        }
+       return array("data"=>$dataCargo);
+    }
 }

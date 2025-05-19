@@ -44,6 +44,11 @@ class CargoOutPutDto
      */
     public $nivel;
 
+     /**
+     * @ORM\Column(type="integer")
+     */
+    public $tipo;
+
     public function __construct()
     {
     }
@@ -120,5 +125,15 @@ class CargoOutPutDto
         return $this->nivel;
     }
 
+    public function getTipo(): ?int
+    {
+        return $this->tipo;
+    }
 
+    public function setTipo(int $tipo): self
+    {
+        $this->tipo = $tipo;
+
+        return $this;
+    }
 }
