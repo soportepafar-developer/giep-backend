@@ -143,7 +143,8 @@ class Instrumento360Evaluaciones
         return $this;
     }
 
-            /**
+     
+    /**
      * @return Collection|PreguntaEvaluacion360[]
      */
     public function getPreguntas(): Collection
