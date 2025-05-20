@@ -25,6 +25,13 @@ class Competencia360
      */
     private $nombre;
 
+
+    /**
+     * @ORM\OneToMany(targetEntity=PreguntaEvaluacion360::class, mappedBy="idInstrumento")
+     */
+    private $preguntas;
+
+
     /**
      * @ORM\Column(type="text", nullable=true)
      */
@@ -82,6 +89,7 @@ class Competencia360
         $this->nivelDominio = new ArrayCollection();
         $this->competenciasCargoEscalas =new ArrayCollection();
         $this->competenciasNivelPonderacion=new ArrayCollection();
+        $this->preguntas = new ArrayCollection();
     }
 
     /**
@@ -209,6 +217,36 @@ class Competencia360
     public function setEscalaPonderacion(int $escalaPonderacion): self
     {
         $this->escalaPonderacion = $escalaPonderacion;
+
+        return $this;
+    }
+
+        /**
+     * @return Collection|PreguntaEvaluacion360[]
+     */
+    public function getPreguntas(): Collection
+    {
+        return $this->preguntas;
+    }
+
+    public function addPregunta(PreguntaEvaluacion360 $pregunta): self
+    {
+        if (!$this->preguntas->contains($pregunta)) {
+            $this->preguntas[] = $pregunta;
+            $pregunta->setIdInstrumento($this);
+        }
+
+        return $this;
+    }
+
+    public function removePregunta(PreguntaEvaluacion360 $pregunta): self
+    {
+        if ($this->preguntas->removeElement($pregunta)) {
+            // set the owning side to null (unless already changed)
+            if ($pregunta->getIdInstrumento() === $this) {
+                $pregunta->setIdInstrumento(null);
+            }
+        }
 
         return $this;
     }

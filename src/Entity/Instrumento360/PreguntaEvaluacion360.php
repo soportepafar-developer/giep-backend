@@ -32,6 +32,12 @@ class PreguntaEvaluacion360
      */
     private $pregunta;
 
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Competencia360::class, inversedBy="preguntas",cascade={"persist"} )
+     */
+    private $idInstrumento;
+
     /**
      * @ORM\Column(type="smallint", nullable=true)
      */
@@ -100,7 +106,7 @@ class PreguntaEvaluacion360
     public function __construct()
     {
         $this->opciones = new ArrayCollection();
-        $this->respuestas = new ArrayCollection();
+ 
     }
 
     /**
@@ -323,5 +329,15 @@ class PreguntaEvaluacion360
         return $this;
     }
 
+    public function getIdInstrumento(): ?Competencia360
+    {
+        return $this->idInstrumento;
+    }
 
+    public function setIdInstrumento(?Competencia360 $idInstrumento): self
+    {
+        $this->idInstrumento = $idInstrumento;
+
+        return $this;
+    }
 }
