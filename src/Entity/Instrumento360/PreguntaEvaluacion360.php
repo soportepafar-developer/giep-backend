@@ -2,6 +2,7 @@
 
 namespace App\Entity\Instrumento360;
 use App\Entity\Instrumento360\TipoInputEvaluacion360;
+use App\Entity\Instrumento360\Competencia360;
 use App\Entity\Proyecto\Empresa;
 use App\Repository\Instrumento360\PreguntaEvaluacion360Repository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -34,7 +35,7 @@ class PreguntaEvaluacion360
 
 
     /**
-     * @ORM\ManyToOne(targetEntity=Competencia360::class, inversedBy="preguntas",cascade={"persist"} )
+     * @ORM\ManyToOne(targetEntity=Instrumento360Evaluaciones::class, inversedBy="preguntas",cascade={"persist"} )
      */
     private $idInstrumento;
 
@@ -102,6 +103,13 @@ class PreguntaEvaluacion360
      * @ORM\ManyToOne(targetEntity=Empresa::class)
      */
     private $idempresa;
+
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Competencia360::class, inversedBy="preguntas")
+     */
+    private $IdCategoria;
+
 
     public function __construct()
     {

@@ -24,17 +24,6 @@ class Instrumento360Evaluaciones
      */
     private $IdInstrumentoUsuario;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Competencia360::class, inversedBy="nivelDominio")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $Competencia360;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=NivelDominio::class, inversedBy="instrumento360Evaluaciones")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $nivelDominio;
 
     /**
      * @ORM\ManyToOne(targetEntity=Empresa::class)
@@ -62,6 +51,20 @@ class Instrumento360Evaluaciones
      */
     private $updateBy;
 
+    
+    /**
+     * @ORM\OneToMany(targetEntity=PreguntaEvaluacion360::class, mappedBy="idInstrumento")
+     */
+    private $preguntas;
+
+
+    public function __construct()
+    {
+        $this->preguntas = new ArrayCollection();
+
+    }
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -79,29 +82,6 @@ class Instrumento360Evaluaciones
         return $this;
     }
 
-    public function getCompetencia360(): ?Competencia360
-    {
-        return $this->Competencia360;
-    }
-
-    public function setCompetencia360(?Competencia360 $Competencia360): self
-    {
-        $this->Competencia360 = $Competencia360;
-
-        return $this;
-    }
-
-    public function getNivelDominio(): ?NivelDominio
-    {
-        return $this->nivelDominio;
-    }
-
-    public function setNivelDominio(?NivelDominio $nivelDominio): self
-    {
-        $this->nivelDominio = $nivelDominio;
-
-        return $this;
-    }
 
     public function getEmpresa(): ?Empresa
     {
@@ -162,4 +142,35 @@ class Instrumento360Evaluaciones
 
         return $this;
     }
+
+            /**
+     * @return Collection|PreguntaEvaluacion360[]
+     */
+    public function getPreguntas(): Collection
+    {
+        return $this->preguntas;
+    }
+
+    public function addPregunta(PreguntaEvaluacion360 $pregunta): self
+    {
+        if (!$this->preguntas->contains($pregunta)) {
+            $this->preguntas[] = $pregunta;
+            $pregunta->setIdInstrumento($this);
+        }
+
+        return $this;
+    }
+
+    public function removePregunta(PreguntaEvaluacion360 $pregunta): self
+    {
+        if ($this->preguntas->removeElement($pregunta)) {
+            // set the owning side to null (unless already changed)
+            if ($pregunta->getIdInstrumento() === $this) {
+                $pregunta->setIdInstrumento(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
