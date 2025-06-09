@@ -35,7 +35,7 @@ class PreguntaEvaluacion360
 
 
     /**
-     * @ORM\ManyToOne(targetEntity=Instrumento360Evaluaciones::class, inversedBy="preguntas",cascade={"persist"} )
+     * @ORM\ManyToOne(targetEntity=Instrumento360::class, inversedBy="preguntas",cascade={"persist"} )
      */
     private $idInstrumento;
 
@@ -117,6 +117,20 @@ class PreguntaEvaluacion360
  
     }
 
+
+    public function getIdCategoria(): ?Competencia360
+    {
+        return $this->IdCategoria;
+    }
+
+    public function setIdCategoria(?Competencia360 $IdCategoria): self
+    {
+        $this->IdCategoria = $IdCategoria;
+
+        return $this;
+    }
+
+
     /**
     * @ORM\PrePersist
     */
@@ -156,12 +170,12 @@ class PreguntaEvaluacion360
         return $this;
     }
 
-    public function getIdInput(): ?TipoInput
+    public function getIdInput(): ?TipoInputEvaluacion360
     {
         return $this->idInput;
     }
 
-    public function setIdInput(?TipoInput $idInput): self
+    public function setIdInput(?TipoInputEvaluacion360 $idInput): self
     {
         $this->idInput = $idInput;
 
@@ -313,12 +327,12 @@ class PreguntaEvaluacion360
         return $this;
     }
 
-    public function getSeccion(): ?SeccionEvaluacion
+    public function getSeccion(): ?SeccionEvaluacion360
     {
         return $this->seccion;
     }
 
-    public function setSeccion(?SeccionEvaluacion $seccion): self
+    public function setSeccion(?SeccionEvaluacion360 $seccion): self
     {
         $this->seccion = $seccion;
 
@@ -337,12 +351,12 @@ class PreguntaEvaluacion360
         return $this;
     }
 
-    public function getIdInstrumento(): ?Competencia360
+    public function getIdInstrumento(): ?Instrumento360
     {
         return $this->idInstrumento;
     }
 
-    public function setIdInstrumento(?Competencia360 $idInstrumento): self
+    public function setIdInstrumento(?Instrumento360 $idInstrumento): self
     {
         $this->idInstrumento = $idInstrumento;
 

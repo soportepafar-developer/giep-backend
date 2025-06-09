@@ -5,6 +5,7 @@ namespace App\Entity\Instrumento360;
 use App\Entity\Proyecto\Empresa;
 use App\Entity\Status;
 use App\Entity\Instrumento360\PreguntaEvaluacion360;
+use App\Entity\Instrumento360\Instrumento360;
 use App\Repository\Instrumento360\SeccionEvaluacion360Repository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -31,6 +32,13 @@ class SeccionEvaluacion360
      * @ORM\Column(type="integer", nullable=true)
      */
     private $orden;
+
+
+ /**
+     * @ORM\ManyToOne(targetEntity=Instrumento360::class, inversedBy="seccions")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $instrumento360;
 
       /**
      * @ORM\OneToMany(targetEntity=PreguntaEvaluacion360::class, mappedBy="seccion", orphanRemoval=true)
@@ -97,18 +105,6 @@ class SeccionEvaluacion360
     public function setOrden(?int $orden): self
     {
         $this->orden = $orden;
-
-        return $this;
-    }
-
-    public function getEvaluacion(): ?Evaluacion
-    {
-        return $this->evaluacion;
-    }
-
-    public function setEvaluacion(?Evaluacion $evaluacion): self
-    {
-        $this->evaluacion = $evaluacion;
 
         return $this;
     }
@@ -214,4 +210,17 @@ class SeccionEvaluacion360
 
         return $this;
     }    
+
+    public function getInstrumento(): ?Instrumento360
+    {
+        return $this->instrumento360;
+    }
+
+    public function setInstrumento(?Instrumento360 $instrumento360): self
+    {
+        $this->instrumento360 = $instrumento360;
+
+        return $this;
+    }
+
 }

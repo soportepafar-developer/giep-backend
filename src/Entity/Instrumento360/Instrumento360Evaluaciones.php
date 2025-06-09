@@ -144,34 +144,6 @@ class Instrumento360Evaluaciones
     }
 
      
-    /**
-     * @return Collection|PreguntaEvaluacion360[]
-     */
-    public function getPreguntas(): Collection
-    {
-        return $this->preguntas;
-    }
 
-    public function addPregunta(PreguntaEvaluacion360 $pregunta): self
-    {
-        if (!$this->preguntas->contains($pregunta)) {
-            $this->preguntas[] = $pregunta;
-            $pregunta->setIdInstrumento($this);
-        }
-
-        return $this;
-    }
-
-    public function removePregunta(PreguntaEvaluacion360 $pregunta): self
-    {
-        if ($this->preguntas->removeElement($pregunta)) {
-            // set the owning side to null (unless already changed)
-            if ($pregunta->getIdInstrumento() === $this) {
-                $pregunta->setIdInstrumento(null);
-            }
-        }
-
-        return $this;
-    }
 
 }

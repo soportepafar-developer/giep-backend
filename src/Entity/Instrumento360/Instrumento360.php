@@ -58,7 +58,7 @@ class Instrumento360
      * @ORM\ManyToOne(targetEntity=TipoInstrumento360::class)
      * @ORM\JoinColumn(nullable=false)
      */
-    private $ManyToOne;
+    private $tipoInstrumento;
 
     /**
      * @ORM\ManyToOne(targetEntity=Empresa::class)
@@ -84,6 +84,13 @@ class Instrumento360
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $updateBy;
+
+
+    /**
+     * @ORM\OneToMany(targetEntity=SeccionEvaluacion360::class, mappedBy="instrumento360")
+     */
+    private $seccions;
+    
 
     public function getId(): ?int
     {
@@ -174,14 +181,14 @@ class Instrumento360
         return $this;
     }
 
-    public function getManyToOne(): ?TipoInstrumento360
+    public function getTipoInstrumento(): ?TipoInstrumento360
     {
-        return $this->ManyToOne;
+        return $this->tipoInstrumento;
     }
 
-    public function setManyToOne(?TipoInstrumento360 $ManyToOne): self
+    public function setTipoInstrumento(?TipoInstrumento360 $tipoInstrumento): self
     {
-        $this->ManyToOne = $ManyToOne;
+        $this->tipoInstrumento = $tipoInstrumento;
 
         return $this;
     }

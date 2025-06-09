@@ -133,12 +133,12 @@ class OpcionesEvaluacion360
         return $this;
     }
 
-    public function getIdPregunta(): ?PreguntaEvaluacion
+    public function getIdPregunta(): ?PreguntaEvaluacion360 
     {
         return $this->idPregunta;
     }
 
-    public function setIdPregunta(?PreguntaEvaluacion $idPregunta): self
+    public function setIdPregunta(?PreguntaEvaluacion360 $idPregunta): self
     {
         $this->idPregunta = $idPregunta;
 
