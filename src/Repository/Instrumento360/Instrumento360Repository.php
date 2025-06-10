@@ -170,6 +170,9 @@ class Instrumento360Repository extends ServiceEntityRepository
             ->from("App\Entity\Instrumento360\Instrumento360","a")
             //->leftJoin('a.Instrumento360UsuariosAsignados', 'q')
             ->leftJoin('a.instrumento360UsuariosAsignados', 'q')
+            ->leftJoin('q.user', 'x')
+            ->leftJoin('q.userEvaluador', 'e')
+            ->leftjoin('a.seccions', 'f')
             ->Where('a.id='.$id)
             ->orderBy('a.id', 'ASC')
             ->getQuery()
@@ -220,6 +223,7 @@ class Instrumento360Repository extends ServiceEntityRepository
             if($instrumentoDto->publicar==1){
                 $editable=0;
             }
+            
             /* if($valor->getInstrumentoUsuarios()!=null){
                 foreach($valor->getInstrumentoUsuarios() as $instrumentosuser){
                         if($instrumentosuser->getRespondida()==1){
@@ -228,7 +232,8 @@ class Instrumento360Repository extends ServiceEntityRepository
                         $usersData[]=array("id"=>$instrumentosuser->getIdUser()->getId(),"nombre"=>$instrumentosuser->getIdUser()->getPrimerNombre(). " ".$instrumentosuser->getIdUser()->getPrimerApellido(),"email"=>$instrumentosuser->getIdUser()->getEmail()
                         ,"respondida"=>$instrumentosuser->getRespondida(),"roles"=>$instrumentosuser->getIdUser()->getRoles());                       
                 }
-            }   */
+            } */  
+
             $instrumentoDto->editable=$editable;
             $instrumentoDto->users=$usersData;
             //$instrumentoDto->pregunta=$entityManager->getRepository(Pregunta::class)->findByIdEncuesta($id);
@@ -241,6 +246,7 @@ class Instrumento360Repository extends ServiceEntityRepository
             }
             $instrumentoDto->createBy=$valor->getCreateBy();
             $secciones=array();
+
             /* if($valor->getSeccions()!=null){
                 foreach($valor->getSeccions() as $seccion){
                     $preguntas= $entityManager->getRepository(Pregunta::class)->findByIdEncuestaAndSeccion($id,$seccion->getId());
@@ -252,6 +258,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                 } 
             }
             $instrumentoDto->secciones=$secciones; */
+
             $dataInstrumento[]=$instrumentoDto;              
         }
        return new JsonResponse(['data'=>$dataInstrumento],200);
