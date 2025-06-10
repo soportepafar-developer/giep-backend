@@ -31,6 +31,44 @@ class Instrumento360Repository extends ServiceEntityRepository
     }
 
 
+     /**
+     * Update Instrumento Captura.
+     */
+    public function put($data,$id,$validator,$helper): JsonResponse  
+    {
+
+        $entityManagerSeccion = $this->getEntityManager();
+
+        $entityManager = $this->getEntityManager();
+        $entity =$entityManager->getRepository(Instrumento360::class)->find($id);
+        if (!$entity) {
+            return new JsonResponse(['msg'=>'No existen Registros con el id: '.$id],404);  
+        }
+        $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
+        $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
+        $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
+        $entity->setTipoInstrumento(!is_null($data["tipoInstrumento"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["tipoInstrumento"]):null);
+        $entity->setFechaVigencia(!is_null($data["expirationDate"])?\DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime(str_replace('-','/', $data["expirationDate"] )))):null);
+        $entity->setDescripcion(!is_null($data["description"])?$data["description"]:null);
+       
+        $errors = $validator->validate($entity);
+        if($errors->count() > 0){
+            foreach ($errors as $violation) {
+                $messages[$violation->getPropertyPath()][] = $violation->getMessage();
+            }
+            return new JsonResponse($messages,500);
+        }else{
+            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+            $entity->setCreateBy($currentUser->getUserName());
+            $entityManager->flush();
+            $this->putSecciones($data,$id);
+            $conn = $this->getEntityManager()->getConnection();
+            
+           
+            return new JsonResponse(['msg'=>'Registro Actualizado: '.$entity->getId()],200);
+        }
+    }
+
     public function post($data,$validator,$helper): JsonResponse
     {
         $entityManager = $this->getEntityManager();
@@ -118,23 +156,23 @@ class Instrumento360Repository extends ServiceEntityRepository
                                 $opciones->setUpdateBy($currentUser->getUserName());                                
                                 $entityManager->persist($opciones);
                                 $entityManager->flush();    
-                                if(isset($options["scoreBycharges"])){
-                                    foreach($options["scoreBycharges"] as $optionsCargos){
-                                        $opcionesCargos = new OpcionesCargo();
-                                        $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
-                                        $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
-                                        $opcionesCargos->setOpcion($opciones);
-                                        $opcionesCargos->setScore($optionsCargos["score"]);
-                                        $opcionesCargos->setCreateBy($currentUser->getUsername());
-                                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                        if($empresa)
-                                           $opcionesCargos->setIdempresa($empresa);
+                                // if(isset($options["scoreBycharges"])){
+                                //     foreach($options["scoreBycharges"] as $optionsCargos){
+                                //         $opcionesCargos = new OpcionesCargo();
+                                //         $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
+                                //         $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
+                                //         $opcionesCargos->setOpcion($opciones);
+                                //         $opcionesCargos->setScore($optionsCargos["score"]);
+                                //         $opcionesCargos->setCreateBy($currentUser->getUsername());
+                                //         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                //         if($empresa)
+                                //            $opcionesCargos->setIdempresa($empresa);
 
-                                        $entityManager->persist($opcionesCargos);
-                                        $entityManager->flush();    
+                                //         $entityManager->persist($opcionesCargos);
+                                //         $entityManager->flush();    
         
-                                    }
-                                }
+                                //     }
+                                // }
                             }
                         }
                     }
@@ -143,5 +181,222 @@ class Instrumento360Repository extends ServiceEntityRepository
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
         }    
     }
+    
 
+    function putSecciones($data,$id){
+        $entityManager = $this->getEntityManager();
+        $entityInstrumento =$entityManager->getRepository(Instrumento360::class)->find($id);
+
+        if(isset($data["sections"])){
+            foreach($data["sections"] as $valor){
+                if(isset($valor["id"])){
+                    $entitySeccion =$entityManager->getRepository(SeccionEvaluacion360::class)->find($valor["id"]);
+                    if($entitySeccion!=null){
+                        $entitySeccion->setNombre($valor["name"]);
+                        $entitySeccion->setOrden($valor["numberSection"]);
+                        $entityManager->flush();
+                        foreach($valor["questions"] as $preguntas){
+                            if(isset($preguntas["id"])){
+                                $entity =$entityManager->getRepository(PreguntaEvaluacion360::class)->find($preguntas["id"]);
+                                if($entity!=null){
+                                    $entity->setPregunta(!is_null($preguntas["label"])?$preguntas["label"]:null);
+                                    $entity->setOrden(!is_null($preguntas["order"])?$preguntas["order"]:null);
+                                    $entity->setIdInput(!is_null($preguntas["inputType"])?$entityManager->getRepository(TipoInputEvaluacion360::class)->find($preguntas["inputType"]["id"]):null);
+                                    if($preguntas["inputType"]["id"]!=$entity->getIdInput()->getId()){
+                                        $tipoInput= $entityManager->getRepository(TipoInputEvaluacion360::class)->find($preguntas["inputType"]["id"]);
+                                        if($tipoInput!=null){                                            
+                                            if($tipoInput->getSeleccionMultiple()==0){
+                                                foreach($entity->getOpciones() as $opciones){
+                                                    $entityManager->remove($opciones);
+                                                    $entityManager->flush(); 
+                                                }                                           
+                                            }       
+                                        } 
+                                    }
+                                    $entity->setObligatorio(!is_null($preguntas["required"])?$preguntas["required"]:null);
+                                    $entity->setPuntos(!is_null($preguntas["score"])?$preguntas["score"]:null);
+                                    $entity->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(TipoCategoria::class)->find($preguntas["categoryId"]):null);
+                                    $entityManager->flush();
+                                    $idOptions=null;
+                                    if(isset($preguntas["options"])){
+                                        foreach($preguntas["options"] as $options){
+                                            if(isset($options["id"])){
+                                                $idOptions=$options["id"];
+                                                $entityOpciones =$entityManager->getRepository(OpcionesEvaluacion360::class)->find($options["id"]);
+                                                if($entityOpciones!=null){
+                                                    $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
+                                                    $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
+                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                    $entityOpciones->setUpdateAt(new \DateTime());
+                                                    $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                                                    $entityOpciones->setUpdateBy($currentUser->getUserName());                                
+                                                    $entityManager->flush();
+                                                }
+                                            }else{
+                                                    $entityOpciones = new OpcionesEvaluacion360();
+                                                    $entityOpciones->setCorrecta(1);
+                                                    $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
+                                                    $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
+                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                    $entityOpciones->setIdPregunta($entity);
+                                                    $entityOpciones->setUpdateAt(new \DateTime());
+                                                    $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                                    if($empresa)
+                                                       $entityOpciones->setIdempresa($empresa);
+                                                    $entityOpciones->setUpdateBy($currentUser->getUserName());                                
+                                                    $entityManager->persist($entityOpciones);
+                                                    $entityManager->flush();   
+                                                    $idOptions=$entityOpciones->getId();
+                                            }
+                                            if(isset($options["scoreBycharges"])){
+                                                $sql = "SELECT * FROM opciones_cargo WHERE opcion_id = ". $idOptions;
+                                                $conn = $this->getEntityManager()->getConnection();
+                                                $stmt = $conn->prepare($sql);
+                                                $stmt->execute();
+                                                $entityOpcionesCargo = $stmt->fetchAll();
+                                                
+                                                if ($entityOpcionesCargo != null) {
+                                                    $entityManager = $this->getEntityManager();
+                                                    foreach ($entityOpcionesCargo as $opcion) {
+                                                        $opcionEntity = $entityManager->getRepository(OpcionesCargo::class)->find($idOptions);
+                                                        if ($opcionEntity) {
+                                                            $entityManager->remove($opcionEntity);
+                                                            $entityManager->flush();
+                                                        }
+                                                    }
+                                                }
+        
+                                                foreach($options["scoreBycharges"] as $optionsCargos){
+                                                    $opcionesCargos = new OpcionesCargo();
+                                                    $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
+                                                    $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
+                                                    $opcionesCargos->setOpcion($entityOpciones);
+                                                    $opcionesCargos->setScore($optionsCargos["score"]);
+                                                    $opcionesCargos->setCreateBy($currentUser->getUsername());
+                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                                    if($empresa)
+                                                       $opcionesCargos->setIdempresa($empresa);
+                                                    $entityManager->persist($opcionesCargos);
+                                                    $entityManager->flush();                        
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }else{
+                                $pregunta = new Pregunta();
+                                $pregunta->setPregunta(!is_null($preguntas["label"])?$preguntas["label"]:null);
+                                $pregunta->setOrden(!is_null($preguntas["order"])?$preguntas["order"]:null);
+                                $pregunta->setIdInput(!is_null($preguntas["inputType"])?$entityManager->getRepository(TipoInput::class)->find($preguntas["inputType"]["id"]):null);
+                                $pregunta->setObligatorio(!is_null($preguntas["required"])?$preguntas["required"]:null);
+                                $pregunta->setPuntos(!is_null($preguntas["score"])?$preguntas["score"]:null);
+                                $pregunta->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(TipoCategoria::class)->find($preguntas["categoryId"]):null);
+                                $pregunta->setIdInstrumento($entityInstrumento);
+                                $pregunta->setSeccion($entitySeccion);
+                                $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                if($empresa)
+                                   $pregunta->setIdempresa($empresa);
+
+                                $entityManager->persist($pregunta);
+                                $entityManager->flush();    
+                                if(isset($preguntas["options"])){
+                                    foreach($preguntas["options"] as $options){
+                                            $entityOpciones = new Opciones();
+                                            $entityOpciones->setCorrecta(1);
+                                            $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
+                                            $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
+                                            $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                            $entityOpciones->setIdPregunta($pregunta);
+                                            $entityOpciones->setUpdateAt(new \DateTime());
+                                            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                                            $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                            if($empresa)
+                                            $entityOpciones->setIdempresa($empresa);
+
+                                            $entityOpciones->setUpdateBy($currentUser->getUserName());                                
+                                            $entityManager->persist($entityOpciones);
+                                            $entityManager->flush(); 
+                                            $idOptions=$entityOpciones->getId();
+                                            if(isset($options["scoreBycharges"])){
+                                                foreach($options["scoreBycharges"] as $optionsCargos){
+                                                    $opcionesCargos = new OpcionesCargo();
+                                                    $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
+                                                    $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
+                                                    $opcionesCargos->setOpcion($entityOpciones);
+                                                    $opcionesCargos->setScore($optionsCargos["score"]);
+                                                    $opcionesCargos->setCreateBy($currentUser->getUsername());
+                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                                    if($empresa)
+                                                       $opcionesCargos->setIdempresa($empresa);
+                                                    $entityManager->persist($opcionesCargos);
+                                                    $entityManager->flush();                        
+                                                }
+                                            }
+
+                                            
+
+                                    }
+                                }   
+                            }
+  
+                        }
+                    }
+ 
+                }else{
+                    $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                    $entitySeccion = new Seccion();                   
+                    $entitySeccion->setNombre($valor["name"]);
+                    $entitySeccion->setOrden($valor["numberSection"]);
+                    $entitySeccion->setInstrumento($entityInstrumento);
+                    $entitySeccion->setUpdateBy($currentUser->getUserName());
+                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                    if($empresa)
+                       $entitySeccion->setIdempresa($empresa);
+
+                    $entityManager->persist($entitySeccion);
+                    $entityManager->flush();
+                    foreach($valor["questions"] as $preguntas){
+                        $pregunta = new Pregunta();
+                        $pregunta->setPregunta(!is_null($preguntas["label"])?$preguntas["label"]:null);
+                        $pregunta->setOrden(!is_null($preguntas["order"])?$preguntas["order"]:null);
+                        $pregunta->setIdInput(!is_null($preguntas["inputType"])?$entityManager->getRepository(TipoInput::class)->find($preguntas["inputType"]["id"]):null);
+                        $pregunta->setObligatorio(!is_null($preguntas["required"])?$preguntas["required"]:null);
+                        $pregunta->setPuntos(!is_null($preguntas["score"])?$preguntas["score"]:null);
+                        $pregunta->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(TipoCategoria::class)->find($preguntas["categoryId"]):null);
+                        $pregunta->setIdInstrumento($entityInstrumento);
+                        $pregunta->setSeccion($entitySeccion);
+                        $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                       if($empresa)
+                          $pregunta->setIdempresa($empresa);
+
+                        $entityManager->persist($pregunta);
+                        $entityManager->flush();
+                        if(isset($preguntas["options"])){
+                            foreach($preguntas["options"] as $options){
+                                    $entityOpciones = new Opciones();
+                                    $entityOpciones->setCorrecta(1);
+                                    $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
+                                    $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
+                                    $entityOpciones->setPuntos(!is_null($options["score"])?$options["score"]:null);
+                                    $entityOpciones->setIdPregunta($pregunta);
+                                    $entityOpciones->setUpdateAt(new \DateTime());
+                                    $entityOpciones->setUpdateBy($currentUser->getUserName());                                
+                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                    if($empresa)
+                                       $entityOpciones->setIdempresa($empresa);
+
+                                    $entityManager->persist($entityOpciones);
+                                    $entityManager->flush();                                        
+                            }
+                        }                  
+                    }
+                }
+            }
+        }
+
+    }
+
+    
 }
