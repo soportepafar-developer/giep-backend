@@ -7,6 +7,8 @@ use App\Entity\EstructuraOrganizativa;
 use App\Entity\Proyecto\Empresa;
 use App\Entity\User;
 use App\Repository\Instrumento360\Instrumento360UsuariosAsignadosRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -54,7 +56,7 @@ class Instrumento360UsuariosAsignados
     private $cargoEvaluador;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Instrumento360::class)
+     * @ORM\ManyToOne(targetEntity=Instrumento360::class, inversedBy="instrumento360UsuariosAsignados")
      * @ORM\JoinColumn(nullable=false)
      */
     private $instrumento360;
@@ -84,6 +86,10 @@ class Instrumento360UsuariosAsignados
      * @ORM\JoinColumn(nullable=false)
      */
     private $empresa;
+
+   
+    
+    
 
     public function getId(): ?int
     {
@@ -233,4 +239,6 @@ class Instrumento360UsuariosAsignados
 
         return $this;
     }
+
+
 }

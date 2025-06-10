@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Service\Helper;
 use Symfony\Component\Validator\Constraints\Json;
+use Nelmio\ApiDocBundle\Annotation\Security;
 
 /**
  * @OA\Tag(name="Instrumento360")
@@ -69,5 +70,44 @@ class Instrumento360Controller extends AbstractController
             return new JsonResponse(['msg'=>'Error del Servidor'],500);
         }
     }
+
+
+
+        /**
+        *  Get Instrumento360 by Id.
+        * @Route("/api/instrumento360/{id}", methods={"GET"})
+        * @OA\Post(
+         * summary="Instrumento evaluación 360 List",
+         * description="Instrumento evaluación 360 List",
+         * operationId="instrumentoevaluacion360list",
+         * tags={"Instrumento360"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="parametro",
+         *    @OA\JsonContent(
+         *       required={"page"},
+         *       @OA\Property(property="page", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="rowByPage", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="word", type="integer", format="integer", example="1"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+         * @OA\Tag(name="Instrumento360")
+         * @Security(name="Bearer")
+    */   
+    public function findById($id,Request $request,Instrumento360Repository $repository): JsonResponse
+    {
+        $data = $repository
+        ->findById($id);
+         return $data;  
+    }
+
 
 } 
