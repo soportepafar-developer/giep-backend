@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Instrumento360;
+namespace App\Dto\Instrumento360;
 
 use App\Entity\Encuesta\TipoUnidad;
 use App\Entity\Proyecto\Empresa;
@@ -13,91 +13,91 @@ use Doctrine\Common\Collections\Collection;
 /**
  * @ORM\Entity(repositoryClass=Instrumento360Repository::class)
  */
-class Instrumento360
+class Instrumento360OutPutDto
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    public $id;
 
     /**
      * @ORM\Column(type="text")
      */
-    private $nombre;
+    public $nombre;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $descripcion;
+    public $descripcion;
 
     /**
      * @ORM\ManyToOne(targetEntity=TipoUnidad::class)
      */
-    private $tipounidad;
+    public $tipounidad;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $fechaVigencia;
+    public $fechaVigencia;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $fechaPublicacion;
+    public $fechaPublicacion;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $publicar;
+    public $publicar;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $duracion;
+    public $duracion;
 
     /**
      * @ORM\ManyToOne(targetEntity=TipoInstrumento360::class)
      * @ORM\JoinColumn(nullable=false)
      */
-    private $tipoInstrumento;
+    public $tipoInstrumento;
 
     /**
      * @ORM\ManyToOne(targetEntity=Empresa::class)
      */
-    private $empresa;
+    public $empresa;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $createAt;
+    public $createAt;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $createBy;
+    public $createBy;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $updateAt;
+    public $updateAt;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $updateBy;
+    public $updateBy;
 
 
     /**
      * @ORM\OneToMany(targetEntity=SeccionEvaluacion360::class, mappedBy="instrumento360")
      */
-    private $seccions;
+    public $seccions;
 
      /**
      * @ORM\OneToMany(targetEntity=Instrumento360UsuariosAsignados::class, mappedBy="instrumento360")
      */
-    private $instrumento360UsuariosAsignados;
+    public $instrumento360UsuariosAsignados;
 
     public function __construct()
     {

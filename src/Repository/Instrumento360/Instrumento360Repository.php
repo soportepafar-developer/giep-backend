@@ -10,11 +10,17 @@ use App\Entity\Instrumento360\OpcionesEvaluacion360;
 use App\Entity\Instrumento360\Competencia360;
 use App\Entity\Encuesta\TipoUnidad;
 use App\Entity\Instrumento360\TipoInputEvaluacion360;
+
+use App\Entity\Instrumento360Evaluaciones;
+use App\Entity\Instrumento360UsuariosAsignados;
+
 use App\Entity\User;
 use App\Entity\Proyecto\Empresa;
 use Symfony\Component\Security\Core\Security;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+
+use App\Dto\Instrumento360\Instrumento360OutPutDto;
 
 /**
  * @method Instrumento360|null find($id, $lockMode = null, $lockVersion = null)
@@ -143,5 +149,114 @@ class Instrumento360Repository extends ServiceEntityRepository
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
         }    
     }
+
+
+    public function findById($id){
+        $entityManager = $this->getEntityManager();        
+        $entity= $this->getEntityManager()->createQueryBuilder();
+
+        /* $encuestaData= $entity->select("a,q,x,f,e")
+            ->from("App\Entity\Instrumento360\Instrumento360","a")
+            ->leftJoin('a.Instrumento360UsuariosAsignados', 'q')
+            ->leftJoin('q.user', 'x')
+            ->leftJoin('q.userEvaluador', 'e')
+            ->leftjoin('a.seccions', 'f')
+            ->andWhere('a.id='.$id)
+            ->orderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getResult(); */
+
+        $encuestaData= $entity->select("a,q")
+            ->from("App\Entity\Instrumento360\Instrumento360","a")
+            //->leftJoin('a.Instrumento360UsuariosAsignados', 'q')
+            ->leftJoin('a.instrumento360UsuariosAsignados', 'q')
+            ->Where('a.id='.$id)
+            ->orderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+        $dataInstrumento=null;
+        foreach($encuestaData as $clave=>$valor){
+            $instrumentoDto =new Instrumento360OutPutDto();
+            $instrumentoDto->id=$valor->getId();
+            $instrumentoDto->nombre=$valor->getNombre();
+            $instrumentoDto->descripcion=$valor->getDescripcion();
+            $instrumentoDto->duracion=$valor->getDuracion();
+            $instrumentoDto->publicar=!is_null($valor->getPublicar())?$valor->getPublicar():0;
+
+            //$instrumentoDto->questionsByCategory= !is_null($valor->getQuestionsByCategory())?$valor->getQuestionsByCategory():0;
+
+            //$instrumentoDto->unidad=$valor->getUnidad();
+
+            //$instrumentoDto->path=$valor->getPath();
+
+            //$instrumentoDto->idTipoUnidad=($valor->getIdTipoUnidad()!=null)?array("id"=>$valor->getIdTipoUnidad()->getId(),"Descripcion"=>$valor->getIdTipoUnidad()->getNombre()):[];
+
+            //$instrumentoDto->statusId=($valor->getStatusId()!=null)?array("id"=>$valor->getStatusId()->getId(),"Descripcion"=>$valor->getStatusId()->getDescripcion()):[];
+            
+            if($valor->getFechaPublicacion()!=null){
+                $instrumentoDto->fechaPublicacion=$valor->getFechaPublicacion()->format("Y-m-d");
+            }    
+            if($valor->getFechaVigencia()!=null){
+                $instrumentoDto->fechaVigencia=$valor->getFechaVigencia()->format("Y-m-d");
+            }    
+
+            if($valor->getCreateAt()!=null){
+                $instrumentoDto->createAt=$valor->getCreateAt()->format("Y-m-d");
+            }    
+            $instrumentoDto->updateBy=$valor->getUpdateBy();
+            if($valor->getUpdateAt()!=null){           
+                 $instrumentoDto->updateAt=$valor->getUpdateAt()->format("d/m/Y");
+            }    
+
+            $roles=[];
+            /* foreach($valor->getRoles() as $valorRol){
+                $roles[]= $valorRol->getDescripcion();            
+            }
+            $instrumentoDto->roles=trim(json_encode($roles),'"');
+            $instrumentoDto->roles=$roles; */
+
+            $usersData=[];
+            $editable=1;
+            if($instrumentoDto->publicar==1){
+                $editable=0;
+            }
+            /* if($valor->getInstrumentoUsuarios()!=null){
+                foreach($valor->getInstrumentoUsuarios() as $instrumentosuser){
+                        if($instrumentosuser->getRespondida()==1){
+                            $editable=0;
+                        }
+                        $usersData[]=array("id"=>$instrumentosuser->getIdUser()->getId(),"nombre"=>$instrumentosuser->getIdUser()->getPrimerNombre(). " ".$instrumentosuser->getIdUser()->getPrimerApellido(),"email"=>$instrumentosuser->getIdUser()->getEmail()
+                        ,"respondida"=>$instrumentosuser->getRespondida(),"roles"=>$instrumentosuser->getIdUser()->getRoles());                       
+                }
+            }   */
+            $instrumentoDto->editable=$editable;
+            $instrumentoDto->users=$usersData;
+            //$instrumentoDto->pregunta=$entityManager->getRepository(Pregunta::class)->findByIdEncuesta($id);
+            if($valor->getCreateAt()!=null){
+                $instrumentoDto->createAt=$valor->getCreateAt()->format("d/m/Y");
+            }    
+            $instrumentoDto->updateBy=$valor->getUpdateBy();
+            if($valor->getUpdateAt()!=null){           
+                 $instrumentoDto->updateAt=$valor->getUpdateAt()->format("d/m/Y");
+            }
+            $instrumentoDto->createBy=$valor->getCreateBy();
+            $secciones=array();
+            /* if($valor->getSeccions()!=null){
+                foreach($valor->getSeccions() as $seccion){
+                    $preguntas= $entityManager->getRepository(Pregunta::class)->findByIdEncuestaAndSeccion($id,$seccion->getId());
+                    $secciones[]=array(
+                        "id"=>$seccion->getId(),
+                        "nombre"=>$seccion->getNombre(),  
+                        "orden"=>$seccion->getOrden(),
+                        "preguntas"=>$preguntas);
+                } 
+            }
+            $instrumentoDto->secciones=$secciones; */
+            $dataInstrumento[]=$instrumentoDto;              
+        }
+       return new JsonResponse(['data'=>$dataInstrumento],200);
+    }
+
+
 
 }
