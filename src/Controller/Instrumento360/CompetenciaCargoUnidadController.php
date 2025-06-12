@@ -71,9 +71,7 @@ class CompetenciaCargoUnidadController extends AbstractController
          *    required=true,
          *    description="Data Competencia Cargo Unidad",
          *    @OA\JsonContent(
-         *       required={"cargo","dominio","competencia","unidad","prioridad"},
-         *       @OA\Property(property="cargo", type="integer", format="integer", example="1"),
-         *       @OA\Property(property="dominio", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="cargosNivelDominioPrioridad", type="array", @OA\Items(type="array",@OA\Items()), example={{"cargoId": 11,"dominioId": 3,"prioridad": 1}}),
          *       @OA\Property(property="competencia", type="integer", format="integer", example="1"),
          *       @OA\Property(property="unidad", type="integer", format="integer", example="1"),
          *       @OA\Property(property="prioridad", type="integer", format="integer", example="1")

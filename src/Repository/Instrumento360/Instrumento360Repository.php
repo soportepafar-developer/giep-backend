@@ -84,7 +84,7 @@ class Instrumento360Repository extends ServiceEntityRepository
         $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
         $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
-        $entity->setTipoInstrumento(!is_null($data["tipoInstrumento"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["tipoInstrumento"]):null);
+        $entity->setTipoInstrumento(!is_null($data["instrumentType"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["instrumentType"]):null);
 
         //$entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
         //$entity->setPath(!is_null($data["path"])?$data["path"]:null);

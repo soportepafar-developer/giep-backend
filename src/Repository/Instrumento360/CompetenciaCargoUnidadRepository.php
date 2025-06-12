@@ -8,7 +8,10 @@ use Doctrine\Persistence\ManagerRegistry;
 
 
 use App\Entity\Status;
-
+use App\Entity\Cargo;
+Use App\Entity\Instrumento360\NivelDominio;
+Use App\Entity\Instrumento360\Competencia360;
+Use App\Entity\EstructuraOrganizativa;
 Use App\Entity\User;
 use App\Dto\Instrumento360\CompetenciaCargoUnidadDto;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -87,23 +90,38 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
      */
     public function post($data,$validator,$helper): JsonResponse  {
         $entityManager = $this->getEntityManager();
-        $entity=$helper->setParametersToEntity(new CompetenciaCargoUnidad(),$data);
-        $errors = $validator->validate($entity);
-        if($errors->count() > 0){
-            $errorsString = (string) $errors;
-            return new JsonResponse(['msg'=>$errorsString],500);
-        }else{
-            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
-            // $entity->setCreateBy($currentUser->getUserName());
-            // $entity->setUpdateBy($currentUser->getUserName());
-                
-            $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-            if($empresa)
-                $entity->setEmpresa($empresa);
-            $entityManager->persist($entity);
-            $entityManager->flush();
+            if(isset($data["cargosNivelDominioPrioridad"])){
+                foreach($data["cargosNivelDominioPrioridad"] as $valor){
+                    $entity = new CompetenciaCargoUnidad();
+                    $cargo =$entityManager->getRepository(Cargo::class)->find($valor["cargoId"]);
+                    if($cargo)
+                        $entity->setCargo($cargo);
+                    $dominio =$entityManager->getRepository(NivelDominio::class)->find($valor["dominioId"]);
+                    if($dominio)
+                         $entity->setDominio($dominio);
+                    
+                    $competencia =$entityManager->getRepository(Competencia360::class)->find($data["competencia"]);
+                    if($competencia)
+                        $entity->setCompetencia($competencia);
+                    $estructura =$entityManager->getRepository(EstructuraOrganizativa::class)->find($data["unidad"]);
+                    if($estructura)
+                        $entity->setUnidad($estructura);
+                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                    if($empresa)
+        
+                    if($empresa)
+                        $entity->setEmpresa($empresa);
+
+                    $entity->setPrioridad($valor["prioridad"]);   
+                        
+                    $entityManager->persist($entity);
+                    $entityManager->flush();
+                                                    
+                }            
+            }
+            
             return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
-        }    
+           
     }
 
     /**
