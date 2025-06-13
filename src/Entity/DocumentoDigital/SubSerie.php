@@ -28,6 +28,11 @@ class SubSerie
      */
     private $id_serie;
 
+    /**
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    private $cod;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -53,6 +58,18 @@ class SubSerie
     public function setIdSerie(?Serie $id_serie): self
     {
         $this->id_serie = $id_serie;
+
+        return $this;
+    }
+
+    public function getCod(): ?string
+    {
+        return $this->cod;
+    }
+
+    public function setCod(?string $cod): self
+    {
+        $this->cod = $cod;
 
         return $this;
     }

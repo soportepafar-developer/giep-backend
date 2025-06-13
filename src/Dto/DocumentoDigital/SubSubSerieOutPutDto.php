@@ -29,6 +29,11 @@ class SubSubSerieOutPutDto
      */
     public $idsubserie;
 
+    /**
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    public $cod;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -42,6 +47,11 @@ class SubSubSerieOutPutDto
     public function getIdSubSerie(): ?SubSerie
     {
         return $this->idsubserie;
+    }
+
+    public function getCod(): ?string
+    {
+        return $this->cod;
     }
     
 }

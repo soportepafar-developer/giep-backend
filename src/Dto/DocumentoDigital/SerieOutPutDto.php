@@ -25,7 +25,12 @@ class SerieOutPutDto
     /**
      * @ORM\Column(type="string", length=255)
      */
-    public $nombre;
+     public $nombre;
+
+     /**
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    public $cod;
 
     public function getId(): ?int
     {
@@ -37,4 +42,8 @@ class SerieOutPutDto
         return $this->nombre;
     }
 
+    public function getCod(): ?string
+    {
+        return $this->cod;
+    }
 }
