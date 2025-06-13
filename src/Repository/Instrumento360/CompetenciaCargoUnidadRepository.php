@@ -161,10 +161,37 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
                 $competenciaCargoUnidadDto->competencia=null;
             }
             $competenciaCargoUnidadDto->prioridad=$valor->getPrioridad();
+
+            $val = $this->Estructura_Organizativa($valor->getUnidad()->getId());
+            $competenciaCargoUnidadDto->niveles=$val;
+
             $data[]=$competenciaCargoUnidadDto;
         }
         return new JsonResponse($data,200);  
     }
+
+    public function Estructura_Organizativa($idestructura){
+    $dataEstructura=[];    
+    $entityManager = $this->getEntityManager();
+    $queryresp = $entityManager->createQueryBuilder();
+    $estructuraQuery = $queryresp->select('eo.id, eo.padre_id, eo.estructura_organizativa')
+        ->from(EstructuraOrganizativa::class, 'eo')
+        ->where('eo.id = :id')
+        ->orWhere('eo.padre_id = :id') // Filtra también por padre_id
+        ->setParameter('id', $idestructura)
+        ->getQuery();
+        $queryrespdata = $queryresp->getQuery();
+        $dataresp =  $queryrespdata->execute();
+        foreach($dataresp as $clave=>$valorresp){
+        $dataArea[] = array(
+            "id" => $valorresp["id"],
+            "label" => $valorresp["estructura_organizativa"]
+        );
+        }
+    return $dataArea;
+  }
+
+
 
     /**
      * Update.
