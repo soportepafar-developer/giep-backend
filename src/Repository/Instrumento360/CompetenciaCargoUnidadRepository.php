@@ -43,7 +43,12 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
         $query= $this->createQueryBuilder('a');
         $query->orderBy('a.id', 'ASC');
         if($data['word']!=null){
-            $query->where("a.nombre like '%".$data['word']."%' ");
+            $query->leftJoin('a.competencia', 'comp')
+                  ->leftJoin('a.cargo', 'carg')
+                  ->leftJoin('a.dominio', 'dom')
+                  ->where("comp.nombre like '%".$data['word']."%' ")
+                  ->orWhere("carg.descripcion like '%".$data['word']."%' ")
+                  ->orWhere("dom.nombre like '%".$data['word']."%' ");
         }
 
         $query->orderBy('a.id', 'ASC');   

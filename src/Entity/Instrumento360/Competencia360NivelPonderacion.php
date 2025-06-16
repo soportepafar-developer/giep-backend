@@ -3,6 +3,7 @@
 namespace App\Entity\Instrumento360;
 
 use App\Entity\Nivel;
+use App\Entity\Instrumento360\NivelDominio;
 use App\Entity\Proyecto\Empresa;
 use App\Repository\Instrumento360\Competencia360NivelPonderacionRepository;
 use Doctrine\ORM\Mapping as ORM;

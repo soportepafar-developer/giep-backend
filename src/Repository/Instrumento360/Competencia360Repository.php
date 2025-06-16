@@ -81,7 +81,6 @@ class Competencia360Repository extends ServiceEntityRepository
      * Create.
      */
     public function post($data,$validator,$helper): JsonResponse  {
-
         $entityManager = $this->getEntityManager();
         $entity=$helper->setParametersToEntity(new Competencia360(),$data);
         $errors = $validator->validate($entity);
@@ -99,6 +98,7 @@ class Competencia360Repository extends ServiceEntityRepository
                 $entity->setEmpresa($empresa);
             $entityManager->persist($entity);
             $entityManager->flush();
+          
             if($data["escalas"]!=null)    
                 foreach($data["escalas"] as $valor){
                     $entityCargo = $entityManager->getRepository(Cargo::class)->find($valor["idCargo"]);          
@@ -115,7 +115,8 @@ class Competencia360Repository extends ServiceEntityRepository
             
                     }
                 }
-            if($data["ponderaciones"]!=null)    
+          
+                if($data["ponderaciones"]!=null)    
                 foreach($data["ponderaciones"] as $valor){
                     $entityNivel = $entityManager->getRepository(Nivel::class)->find($valor["idNivel"]);          
                     if($entityNivel!=null){
@@ -129,9 +130,9 @@ class Competencia360Repository extends ServiceEntityRepository
                         $entityManager->persist($competencia360NivelPonderacion);
                         $entityManager->flush();
                     }
-                }
-    
-            return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
+                }        
+          
+                return new JsonResponse(['msg'=>'Registro Creado','id'=>$entity->getId()],200);
         }    
     }
 
