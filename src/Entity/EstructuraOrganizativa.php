@@ -31,6 +31,11 @@ class EstructuraOrganizativa
      */
     private $jerarquia;
 
+    /**
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    private $cod;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -68,6 +73,18 @@ class EstructuraOrganizativa
     public function setJerarquia(string $jerarquia): self
     {
         $this->jerarquia = $jerarquia;
+
+        return $this;
+    }
+
+    public function getCod(): ?string
+    {
+        return $this->cod;
+    }
+
+    public function setCod(?string $cod): self
+    {
+        $this->cod = $cod;
 
         return $this;
     }

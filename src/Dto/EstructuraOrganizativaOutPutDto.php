@@ -31,6 +31,11 @@ class EstructuraOrganizativaOutPutDto
      */
     public $jerarquia;
 
+    /**
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    public $cod;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -46,5 +51,10 @@ class EstructuraOrganizativaOutPutDto
     public function getJerarquia(): ?string
     {
         return $this->jerarquia;
+    }
+
+    public function getCod(): ?string
+    {
+        return $this->cod;
     }
 }

@@ -166,10 +166,72 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
                 $competenciaCargoUnidadDto->competencia=null;
             }
             $competenciaCargoUnidadDto->prioridad=$valor->getPrioridad();
+
+            $val = $this->Estructura_Organizativa($valor->getUnidad()->getId());
+            $competenciaCargoUnidadDto->niveles=$val;
+
             $data[]=$competenciaCargoUnidadDto;
         }
         return new JsonResponse($data,200);  
     }
+
+    public function Estructura_Organizativa($idestructura){
+    $dataEstructura=[];    
+    $regSalida=false;
+    $entityManager = $this->getEntityManager();
+    $queryresp = $entityManager->createQueryBuilder();
+    $estructuraQuery = $queryresp->select('eo.id, eo.padre_id, eo.estructura_organizativa')
+        ->from(EstructuraOrganizativa::class, 'eo')
+        ->where('eo.id = :id')
+        ->setParameter('id', $idestructura)
+        ->getQuery();
+        $queryrespdata = $queryresp->getQuery();
+        $dataresp =  $queryrespdata->execute();
+        $regUnidad =  $dataresp[0]["padre_id"];
+
+        $dataEstructura[] = array(
+            "id" => $dataresp[0]["id"],
+            "label" => $dataresp[0]["estructura_organizativa"]
+        );
+
+  do {
+        $queryRecursivo = $entityManager->createQueryBuilder();
+        $estructuraQueryRec = $queryRecursivo->select('eo.id, eo.padre_id, eo.estructura_organizativa')
+        ->from(EstructuraOrganizativa::class, 'eo')
+        ->where('eo.id = :id')
+        ->setParameter('id', $regUnidad)
+        ->getQuery();
+        $queryrecursivodata = $queryRecursivo->getQuery();
+        $datarecursivo =  $queryrecursivodata->execute();
+
+        if (is_null($datarecursivo[0]["padre_id"])) {
+            $dataEstructura[] = array(
+                "id" => $datarecursivo[0]["id"],
+                "label" => $datarecursivo[0]["estructura_organizativa"]
+            );
+            $regSalida=true;
+        }else{
+            $regUnidad =  $datarecursivo[0]["padre_id"];
+            $dataEstructura[] = array(
+                "id" => $datarecursivo[0]["id"],
+                "label" => $datarecursivo[0]["estructura_organizativa"]
+            );
+        }
+        
+
+   } while (!$regSalida);
+   // Ordenar el array de menor a mayor por el campo 'id'
+    usort($dataEstructura, function($a, $b) {
+        return $a['id'] <=> $b['id'];
+    });
+   return $dataEstructura;
+
+}
+
+  
+
+
+
 
     /**
      * Update.
