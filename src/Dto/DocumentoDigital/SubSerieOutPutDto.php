@@ -29,10 +29,9 @@ class SubSerieOutPutDto
     public $nombresubserie;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Serie::class)
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="integer" , nullable=true)
      */
-    public $id_serie;
+    private $id_serie;
 
     /**
      * @ORM\Column(type="string", length=10, nullable=true)
@@ -49,7 +48,7 @@ class SubSerieOutPutDto
         return $this->nombresubserie;
     }
 
-    public function getIdSerie(): ?Serie
+    public function getIdSerie(): ?int
     {
         return $this->id_serie;
     }

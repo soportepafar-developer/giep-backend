@@ -50,6 +50,46 @@ class SubSerieRepository extends ServiceEntityRepository
        return array("data"=>$dataSubserie);
     }
 
+
+    public function findSubSerieActualizar($em){
+            $sqlbusnotf = " SELECT * FROM `serie_sub_serie` ORDER BY id ASC";
+            $conn123 =  $em->getConnection();
+            $stmtnotf = $conn123->prepare($sqlbusnotf);
+            $stmtnotf->execute();
+            $result=$stmtnotf->fetchAll();
+
+        $dataTotal=array();
+        $colorprogress='';
+        $nivelactual=0;
+        $cedula=0;
+        foreach($result as $claveResult=>$valorResult){
+             $serie= $valorResult["serie"];
+             $id_series= $valorResult["id_series"];
+
+             $sub_series= $valorResult["sub_serie"];
+
+        if ($serie) { 
+            if ($valorResult["sub_serie"]) {
+                //echo "El valor existe y no es NULL.";
+                $sqlbusserie = " SELECT * FROM `serie` where nombre='$serie'; ";
+                $connserie =  $em->getConnection();
+                $stmtserie = $connserie->prepare($sqlbusserie);
+                $stmtserie->execute();
+                $resultserie=$stmtserie->fetchAll();
+                $id_serie=$resultserie[0]["id"];
+
+                $sql3 = "update serie_sub_serie set id_serie_f='".$id_serie."' where id_series ='".$id_series."' ";
+                $conn3 = $em->getConnection();
+                $stmt3 = $conn3->prepare($sql3);
+                $stmt3->execute(); 
+            }
+
+         }
+
+        }
+        return new JsonResponse(['msg'=>'Fin de la actualización satisfactoriamente: '],200);
+    }
+
     // /**
     //  * @return SubSerie[] Returns an array of SubSerie objects
     //  */
