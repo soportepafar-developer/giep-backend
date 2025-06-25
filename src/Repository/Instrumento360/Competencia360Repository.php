@@ -42,7 +42,8 @@ class Competencia360Repository extends ServiceEntityRepository
        
         $query= $this->createQueryBuilder('a');
         if($data['word']!=null){
-            $query->where("a.nombre like '%".$data['word']."%' and a.empresa = ".$empresa->getId()." "); 
+            $query
+            ->where("(a.nombre like '%".$data['word']."%' or a.tipo like '%".$data['word']."%') and a.empresa = ".$empresa->getId()." "); 
         }else{
             $query->where("a.empresa = ".$empresa->getId());
         }

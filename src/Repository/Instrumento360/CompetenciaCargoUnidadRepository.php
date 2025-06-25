@@ -46,8 +46,10 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
             $query->leftJoin('a.competencia', 'comp')
                   ->leftJoin('a.cargo', 'carg')
                   ->leftJoin('a.dominio', 'dom')
+                  ->leftJoin('a.unidad','unidad')
                   ->where("comp.nombre like '%".$data['word']."%' ")
                   ->orWhere("carg.descripcion like '%".$data['word']."%' ")
+                  ->orWhere("unidad.estructura_organizativa like '%".$data['word']."%' ")
                   ->orWhere("dom.nombre like '%".$data['word']."%' ");
         }
 

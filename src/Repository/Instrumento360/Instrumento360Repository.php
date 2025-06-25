@@ -38,7 +38,7 @@ class Instrumento360Repository extends ServiceEntityRepository
 
 
      /**
-     * Update Instrumento Captura.
+     * Update Instrumento 360.
      */
     public function put($data,$id,$validator,$helper): JsonResponse  
     {
