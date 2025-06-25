@@ -628,7 +628,8 @@ class InstrumentoCapturaRepository extends ServiceEntityRepository
                                                 if($entityOpciones!=null){
                                                     $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                                     $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                    if(isset($options["scoreBycharges"]))
+                                                        $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
                                                     $entityOpciones->setUpdateBy($currentUser->getUserName());                                

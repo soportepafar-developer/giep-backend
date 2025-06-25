@@ -10,7 +10,7 @@ use App\Entity\Instrumento360\OpcionesEvaluacion360;
 use App\Entity\Instrumento360\Competencia360;
 use App\Entity\Encuesta\TipoUnidad;
 use App\Entity\Instrumento360\TipoInputEvaluacion360;
-
+use	Doctrine\ORM\Tools\Pagination\Paginator;
 use App\Entity\Instrumento360Evaluaciones;
 use App\Entity\Instrumento360UsuariosAsignados;
 
@@ -425,6 +425,9 @@ class Instrumento360Repository extends ServiceEntityRepository
             ->from("App\Entity\Instrumento360\Instrumento360","a")
             //->leftJoin('a.Instrumento360UsuariosAsignados', 'q')
             ->leftJoin('a.instrumento360UsuariosAsignados', 'q')
+            ->leftJoin('a.tipounidad', 't')
+            ->leftJoin('a.tipoInstrumento', 'ti')
+            ->leftJoin('a.tipoInstrumento', 'em')
             ->leftJoin('q.user', 'x')
             ->leftJoin('q.userEvaluador', 'e')
             ->leftjoin('a.seccions', 'f')
@@ -450,7 +453,11 @@ class Instrumento360Repository extends ServiceEntityRepository
 
             //$instrumentoDto->path=$valor->getPath();
 
-            //$instrumentoDto->idTipoUnidad=($valor->getIdTipoUnidad()!=null)?array("id"=>$valor->getIdTipoUnidad()->getId(),"Descripcion"=>$valor->getIdTipoUnidad()->getNombre()):[];
+            $instrumentoDto->tipounidad=($valor->getTipoUnidad()!=null)?array("id"=>$valor->getTipoUnidad()->getId(),"Descripcion"=>$valor->getTipoUnidad()->getNombre()):[];
+
+
+            $instrumentoDto->tipoInstrumento=($valor->getTipoInstrumento()!=null)?array("id"=>$valor->getTipoInstrumento()->getId(),"Descripcion"=>$valor->getTipoInstrumento()->getNombre()):[];
+            $instrumentoDto->empresa=($valor->getEmpresa()!=null)?array("id"=>$valor->getEmpresa()->getId(),"Descripcion"=>$valor->getEmpresa()->getNombre()):[];
 
             //$instrumentoDto->statusId=($valor->getStatusId()!=null)?array("id"=>$valor->getStatusId()->getId(),"Descripcion"=>$valor->getStatusId()->getDescripcion()):[];
             
@@ -505,9 +512,9 @@ class Instrumento360Repository extends ServiceEntityRepository
             $instrumentoDto->createBy=$valor->getCreateBy();
             $secciones=array();
 
-            /* if($valor->getSeccions()!=null){
+            if($valor->getSeccions()!=null){
                 foreach($valor->getSeccions() as $seccion){
-                    $preguntas= $entityManager->getRepository(Pregunta::class)->findByIdEncuestaAndSeccion($id,$seccion->getId());
+                    $preguntas= $entityManager->getRepository(PreguntaEvaluacion360::class)->findByIdEncuestaAndSeccion($id,$seccion->getId());
                     $secciones[]=array(
                         "id"=>$seccion->getId(),
                         "nombre"=>$seccion->getNombre(),  
@@ -515,13 +522,116 @@ class Instrumento360Repository extends ServiceEntityRepository
                         "preguntas"=>$preguntas);
                 } 
             }
-            $instrumentoDto->secciones=$secciones; */
+            $instrumentoDto->secciones=$secciones; 
 
             $dataInstrumento[]=$instrumentoDto;              
         }
        return new JsonResponse(['data'=>$dataInstrumento],200);
     }
 
+
+    public function findAllPage($data){
+        $entityManagerDefault = $this->getEntityManager();
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+
+        $entity= $this->getEntityManager()->createQueryBuilder();
+
+        if ($data['page'] != 0 && $data['page'] != 1) {
+            $offset = ($data['page'] - 1) * $data['rowByPage'];
+        }
+       
+        $query= $this->createQueryBuilder('a');
+        $query->orderBy('a.id', 'ASC');
+        if($data['word']!=null){
+            $query->where("a.nombre like '%".$data['word']."%' and a.empresa = ".$empresa->getId()." "); 
+        }else{
+            $query->where("a.empresa = ".$empresa->getId());
+        }
+
+        $query->orderBy('a.id', 'ASC');   
+        $query->getQuery();
+
+        $paginatorTotalCount = new Paginator($query);	
+        $paginator = new Paginator($query);	
+    	$paginator->getQuery()	
+      	->setFirstResult($data['rowByPage'] *($data['page']-1))	
+      	->setMaxResults($data['rowByPage']);	
+        $dataUser=array();
+        $hijos=[];
+        $rolesUser=[];
+        $datainstrumentocap=array();
+        foreach($paginator as $clave=>$valor){
+            $instrumentocapturaDto =new Instrumento360OutPutDto();
+            $instrumentocapturaDto->id=$valor->getId();
+            $instrumentocapturaDto->nombre=$valor->getNombre();
+            $instrumentocapturaDto->descripcion=$valor->getDescripcion();
+            $instrumentocapturaDto->idTipoUnidad=($valor->getTipoUnidad()!=null)?array("id"=>$valor->getTipoUnidad()->getId(),"Nombre"=>$valor->getTipoUnidad()->getNombre(),"Factor"=>$valor->getTipoUnidad()->getFactor()):[];
+            $instrumentocapturaDto->unidad=$valor->getTipounidad();
+
+            //$instrumentocapturaDto->fechaPublicacion=$valor->getFechaPublicacion()->format("Y-m-d");
+            $instrumentocapturaDto->fechaPublicacion=!is_null($valor->getFechaPublicacion())?$valor->getFechaPublicacion()->format("Y-m-d"):null;
+            $instrumentocapturaDto->createAt=!is_null($valor->getCreateAt())?$valor->getCreateAt()->format("Y-m-d"):null;
+            //$instrumentocapturaDto->createAt=$valor->getCreateAt()->format("Y-m-d");
+            $instrumentocapturaDto->fechaVigencia=$valor->getFechaVigencia()->format("Y-m-d");
+            $instrumentocapturaDto->publicar=$valor->getPublicar();
+            $instrumentocapturaDto->editable=1;
+
+            $entity= $this->getEntityManager()->createQueryBuilder();
+            $encuestaData= $entity->select("a,q")
+                ->from("App\Entity\Encuesta\InstrumentoCaptura","a")
+                ->innerJoin('a.instrumentoUsuarios', 'q')
+                ->Where('q.respondida=1')
+                ->andWhere('a.id='.$valor->getId())
+                ->orderBy('a.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+            if($instrumentocapturaDto->publicar==1){
+                $instrumentocapturaDto->editable=0;
+            }
+
+            if(count($encuestaData)>0){
+                $instrumentocapturaDto->editable=0;
+            }
+
+            $datainstrumentocap[]=$instrumentocapturaDto;
+        }
+       return array("count"=>count($paginatorTotalCount),"data"=>$datainstrumentocap);
+ 
+    }
+
+
+
+    /**
+     * Publicar Instrumento.
+     */
+    public function publicar($data,$id,$validator,$helper): JsonResponse  
+    {
+        $entityManager = $this->getEntityManager();
+        $entity =$entityManager->getRepository(Instrumento360::class)->find($id);
+        $entity->setPublicar($data["publicar"]);
+        if($data["publicar"]==1){
+            $entity->setFechaPublicacion(new \DateTime());
+        }
+
+        if (!$entity) {
+            return new JsonResponse(['msg'=>'No existen Registros con el id: '.$id],404);  
+        }
+        $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+        $entity->setUpdateBy($currentUser->getUserName());
+        $entity->setUpdateAt(new \DateTime());
+        $errors = $validator->validate($entity);
+        if($errors->count() > 0){
+            foreach ($errors as $violation) {
+                $messages[$violation->getPropertyPath()][] = $violation->getMessage();
+            }
+            return new JsonResponse($messages,500);
+        }else{
+            $entityManager->persist($entity);
+            $entityManager->flush();
+            return new JsonResponse(['msg'=>'Registro Actualizado: '.$entity->getId()],200);
+        }
+
+    }
 
 
 }

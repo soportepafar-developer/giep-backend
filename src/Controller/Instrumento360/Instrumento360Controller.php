@@ -3,6 +3,7 @@
 namespace App\Controller\Instrumento360;
 use App\Entity\Instrumento360\Instrumento360;
 use App\Repository\Instrumento360\Instrumento360Repository;
+use App\Repository\Instrumento360\Instrumento360UsuariosAsignadosRepository;
 use OpenApi\Annotations as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +21,7 @@ class Instrumento360Controller extends AbstractController
 {
     private $evaluacionesRepository;
 
+    
     public function __construct(Instrumento360Repository $evaluacionesRepository)
     {
         $this->evaluacionesRepository = $evaluacionesRepository;
@@ -73,6 +75,7 @@ class Instrumento360Controller extends AbstractController
 
 
 
+
         /**
         *  Get Instrumento360 by Id.
         * @Route("/api/instrumento360/{id}", methods={"GET"})
@@ -109,5 +112,85 @@ class Instrumento360Controller extends AbstractController
          return $data;  
     }
 
+
+       /**
+        * @Route("/api/instrumento360/pagined", methods={"POST"})
+        * @OA\Post(
+         * summary="Instrumento 360 List AllPages",
+         * description="Instrumento 360 List",
+         * operationId="instrumento360list",
+         * tags={"Instrumento360"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="parametro",
+         *    @OA\JsonContent(
+         *       required={"page"},
+         *       @OA\Property(property="page", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="rowByPage", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="word", type="integer", format="integer", example="1"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */   
+    public function findList(Request $request): JsonResponse
+    {
+        
+        
+        $param = json_decode($request->getContent(),true);
+
+        $instrumento360 = $this->getDoctrine()->getRepository(Instrumento360::class);
+ 
+        $data = $instrumento360
+        ->findAllPage($param);
+        if (!$data) {
+            return new JsonResponse(['msg'=>'No existen Registros'],200);  
+        }   
+         return new JsonResponse($data,200);  
+    }
+
+
+    
+        /**
+        * @Route("/api/instrumento360/publicar/{id}", methods={"PUT"})
+        * @OA\Put(
+         * summary="Publicar Instrumento 360",
+         * description="Publicar Instrumento 360",
+         * operationId="publicarInstrumento360",
+         * tags={"Instrumento360"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="Data Instrumento360",
+         *    @OA\JsonContent(
+         *       required={"publicar"},
+         *       @OA\Property(property="publicar", type="integer", format="integer", example="1"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */
+    public function publicar($id,Request $request,ValidatorInterface $validator,Helper $helper): JsonResponse
+    {
+        try {
+            $data = json_decode($request->getContent(),true);
+            $em =$this->getDoctrine()->getManager();
+            $repository = $this->getDoctrine()->getRepository(Instrumento360::class);
+            return $repository->publicar($data,$id,$validator,$helper); 
+        } catch (Exception $e) {
+            return new JsonResponse(['msg'=>'Error del Servidor'],500);
+        }
+    }
 
 } 

@@ -4,6 +4,7 @@ namespace App\Entity\Instrumento360;
 
 use App\Entity\Encuesta\TipoUnidad;
 use App\Entity\Proyecto\Empresa;
+use App\Entity\Instrumento360\PreguntaEvaluacion360;
 use App\Repository\Instrumento360\Instrumento360Repository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -99,9 +100,19 @@ class Instrumento360
      */
     private $instrumento360UsuariosAsignados;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PreguntaEvaluacion360::class, mappedBy="idInstrumento")
+     */
+    private $preguntas;
+
+
     public function __construct()
     {
         $this->instrumento360UsuariosAsignados = new ArrayCollection();
+        $this->seccions = new ArrayCollection();
+        $this->preguntas = new ArrayCollection();
+
+
     }
 
     public function getId(): ?int
@@ -268,6 +279,67 @@ class Instrumento360
     public function getInstrumento360UsuariosAsignados(): Collection
     {
         return $this->instrumento360UsuariosAsignados;
+    }
+
+        /**
+     * @return Collection|SeccionEvaluacion360[]
+     */
+    public function getSeccions(): Collection
+    {
+        return $this->seccions;
+    }
+
+    public function addSeccion(SeccionEvaluacion360 $seccion): self
+    {
+        if (!$this->seccions->contains($seccion)) {
+            $this->seccions[] = $seccion;
+            $seccion->setInstrumento($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSeccion(SeccionEvaluacion360 $seccion): self
+    {
+        if ($this->seccions->removeElement($seccion)) {
+            // set the owning side to null (unless already changed)
+            if ($seccion->getInstrumento() === $this) {
+                $seccion->setInstrumento(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+        /**
+     * @return Collection|PreguntaEvaluacion360[]
+     */
+    public function getPreguntas(): Collection
+    {
+        return $this->preguntas;
+    }
+
+    public function addPregunta(PreguntaEvaluacion360 $pregunta): self
+    {
+        if (!$this->preguntas->contains($pregunta)) {
+            $this->preguntas[] = $pregunta;
+            $pregunta->setIdInstrumento($this);
+        }
+
+        return $this;
+    }
+
+    public function removePregunta(PreguntaEvaluacion360 $pregunta): self
+    {
+        if ($this->preguntas->removeElement($pregunta)) {
+            // set the owning side to null (unless already changed)
+            if ($pregunta->getIdInstrumento() === $this) {
+                $pregunta->setIdInstrumento(null);
+            }
+        }
+
+        return $this;
     }
 
 

@@ -64,7 +64,7 @@ class NivelDominio
     /**
      * @ORM\OneToMany(targetEntity=Instrumento360Evaluaciones::class, mappedBy="nivelDominio")
      */
-    private $instrumento360Evaluaciones;
+    //private $instrumento360Evaluaciones;
 
     /**
      * @ORM\ManyToOne(targetEntity=Status::class)
