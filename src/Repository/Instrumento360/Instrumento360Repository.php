@@ -440,8 +440,11 @@ class Instrumento360Repository extends ServiceEntityRepository
             $instrumentoDto->descripcion=$valor->getDescripcion();
             $instrumentoDto->duracion=$valor->getDuracion();
             $instrumentoDto->publicar=!is_null($valor->getPublicar())?$valor->getPublicar():0;
+           
+           //$instrumentoDto->questionsByCategory= !is_null($valor->getQuestionsByCategory())?$valor->getQuestionsByCategory():0;
 
-            //$instrumentoDto->questionsByCategory= !is_null($valor->getQuestionsByCategory())?$valor->getQuestionsByCategory():0;
+            $instrumentoDto->questionsByCategory=1;
+            $instrumentoDto->puntosGlobales=1;
 
             //$instrumentoDto->unidad=$valor->getUnidad();
 

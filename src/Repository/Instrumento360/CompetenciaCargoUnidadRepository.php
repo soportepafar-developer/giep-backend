@@ -189,7 +189,9 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
             "label" => $dataresp[0]["estructura_organizativa"]
         );
 
-  do {
+   if (!is_null($dataresp[0]["padre_id"])) {
+
+    do {
         $queryRecursivo = $entityManager->createQueryBuilder();
         $estructuraQueryRec = $queryRecursivo->select('eo.id, eo.padre_id, eo.estructura_organizativa')
         ->from(EstructuraOrganizativa::class, 'eo')
@@ -215,6 +217,7 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
         
 
    } while (!$regSalida);
+}
    // Ordenar el array de menor a mayor por el campo 'id'
     usort($dataEstructura, function($a, $b) {
         return $a['id'] <=> $b['id'];
