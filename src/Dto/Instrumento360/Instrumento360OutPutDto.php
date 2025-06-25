@@ -99,6 +99,17 @@ class Instrumento360OutPutDto
      */
     public $instrumento360UsuariosAsignados;
 
+     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    public $questionsByCategory;
+
+     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    public $puntosGlobales;
+
+
     public function __construct()
     {
         $this->instrumento360UsuariosAsignados = new ArrayCollection();
@@ -269,6 +280,15 @@ class Instrumento360OutPutDto
     {
         return $this->instrumento360UsuariosAsignados;
     }
+    
+     public function getQuestionsByCategory(): ?int
+    {
+        return $this->questionsByCategory;
+    }
 
+    public function getPuntosGlobales(): ?int
+    {
+        return $this->puntosGlobales;
+    }
 
 }

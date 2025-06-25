@@ -53,6 +53,8 @@ class Instrumento360Repository extends ServiceEntityRepository
         $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
         $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
+        $entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
+        $entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
         $entity->setTipoInstrumento(!is_null($data["tipoInstrumento"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["tipoInstrumento"]):null);
         $entity->setFechaVigencia(!is_null($data["expirationDate"])?\DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime(str_replace('-','/', $data["expirationDate"] )))):null);
         $entity->setDescripcion(!is_null($data["description"])?$data["description"]:null);
@@ -86,11 +88,11 @@ class Instrumento360Repository extends ServiceEntityRepository
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
         $entity->setTipoInstrumento(!is_null($data["instrumentType"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["instrumentType"]):null);
 
-        //$entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
+        $entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
         //$entity->setPath(!is_null($data["path"])?$data["path"]:null);
         $entity->setFechaVigencia(!is_null($data["expirationDate"])?\DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime(str_replace('-','/', $data["expirationDate"] )))):null);
         $entity->setDescripcion(!is_null($data["description"])?$data["description"]:null);
-        //$entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
+        $entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
        // $entityStatus = $entityManager->getRepository(Status::class)->findOneById(1);          
         //$entity->setStatusId($entityStatus); 
         //$entity->setOrden(1);
@@ -409,18 +411,6 @@ class Instrumento360Repository extends ServiceEntityRepository
     public function findById($id){
         $entityManager = $this->getEntityManager();        
         $entity= $this->getEntityManager()->createQueryBuilder();
-
-        /* $encuestaData= $entity->select("a,q,x,f,e")
-            ->from("App\Entity\Instrumento360\Instrumento360","a")
-            ->leftJoin('a.Instrumento360UsuariosAsignados', 'q')
-            ->leftJoin('q.user', 'x')
-            ->leftJoin('q.userEvaluador', 'e')
-            ->leftjoin('a.seccions', 'f')
-            ->andWhere('a.id='.$id)
-            ->orderBy('a.id', 'ASC')
-            ->getQuery()
-            ->getResult(); */
-
         $encuestaData= $entity->select("a,q")
             ->from("App\Entity\Instrumento360\Instrumento360","a")
             //->leftJoin('a.Instrumento360UsuariosAsignados', 'q')
@@ -443,9 +433,10 @@ class Instrumento360Repository extends ServiceEntityRepository
             $instrumentoDto->descripcion=$valor->getDescripcion();
             $instrumentoDto->duracion=$valor->getDuracion();
             $instrumentoDto->publicar=!is_null($valor->getPublicar())?$valor->getPublicar():0;
-
-            //$instrumentoDto->questionsByCategory= !is_null($valor->getQuestionsByCategory())?$valor->getQuestionsByCategory():0;
-
+           
+           $instrumentoDto->questionsByCategory= !is_null($valor->getQuestionsByCategory())?$valor->getQuestionsByCategory():0;
+           $instrumentoDto->puntosGlobales= !is_null($valor->getPuntosGlobales())?$valor->getPuntosGlobales():0;
+            
             //$instrumentoDto->unidad=$valor->getUnidad();
 
             //$instrumentoDto->path=$valor->getPath();
