@@ -105,6 +105,16 @@ class Instrumento360
      */
     private $preguntas;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $questionsByCategory;
+
+      /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $puntosGlobales;
+
 
     public function __construct()
     {
@@ -342,5 +352,28 @@ class Instrumento360
         return $this;
     }
 
+    public function getQuestionsByCategory(): ?int
+    {
+        return $this->questionsByCategory;
+    }
+
+    public function setQuestionsByCategory(?int $questionsByCategory): self
+    {
+        $this->questionsByCategory = $questionsByCategory;
+
+        return $this;
+    }
+
+    public function getPuntosGlobales(): ?int
+    {
+        return $this->puntosGlobales;
+    }
+
+    public function setPuntosGlobales(?int $puntosGlobales): self
+    {
+        $this->puntosGlobales = $puntosGlobales;
+
+        return $this;
+    }
 
 }
