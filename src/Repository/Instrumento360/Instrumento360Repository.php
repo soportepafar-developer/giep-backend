@@ -55,7 +55,7 @@ class Instrumento360Repository extends ServiceEntityRepository
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
         $entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
         $entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
-        $entity->setTipoInstrumento(!is_null($data["tipoInstrumento"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["tipoInstrumento"]):null);
+        $entity->setTipoInstrumento(!is_null($data["instrumentType"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["instrumentType"]):null);
         $entity->setFechaVigencia(!is_null($data["expirationDate"])?\DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime(str_replace('-','/', $data["expirationDate"] )))):null);
         $entity->setDescripcion(!is_null($data["description"])?$data["description"]:null);
        
@@ -94,7 +94,7 @@ class Instrumento360Repository extends ServiceEntityRepository
         $entity->setDescripcion(!is_null($data["description"])?$data["description"]:null);
         $entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
        // $entityStatus = $entityManager->getRepository(Status::class)->findOneById(1);          
-        //$entity->setStatusId($entityStatus); 
+        //$entity->setStatusId($entityManager->getRepository(Status::class)->findOneById(1)); 
         //$entity->setOrden(1);
         $entity->setPublicar(0);                
         if(isset($data["roles"])){
@@ -223,7 +223,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                                     }
                                     $entity->setObligatorio(!is_null($preguntas["required"])?$preguntas["required"]:null);
                                     $entity->setPuntos(!is_null($preguntas["score"])?$preguntas["score"]:null);
-                                    $entity->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(TipoCategoria::class)->find($preguntas["categoryId"]):null);
+                                    $entity->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(Competencia360::class)->find($preguntas["categoryId"]):null);
                                     $entityManager->flush();
                                     $idOptions=null;
                                     if(isset($preguntas["options"])){
@@ -234,7 +234,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                                                 if($entityOpciones!=null){
                                                     $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                                     $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                  //  $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
                                                     $entityOpciones->setUpdateBy($currentUser->getUserName());                                
@@ -245,7 +245,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                                                     $entityOpciones->setCorrecta(1);
                                                     $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                                     $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                    //$entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                                     $entityOpciones->setIdPregunta($entity);
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
@@ -257,50 +257,51 @@ class Instrumento360Repository extends ServiceEntityRepository
                                                     $entityManager->flush();   
                                                     $idOptions=$entityOpciones->getId();
                                             }
-                                            if(isset($options["scoreBycharges"])){
-                                                $sql = "SELECT * FROM opciones_cargo WHERE opcion_id = ". $idOptions;
-                                                $conn = $this->getEntityManager()->getConnection();
-                                                $stmt = $conn->prepare($sql);
-                                                $stmt->execute();
-                                                $entityOpcionesCargo = $stmt->fetchAll();
+                                            // if(isset($options["scoreBycharges"])){
+                                            //     $sql = "SELECT * FROM opciones_cargo WHERE opcion_id = ". $idOptions;
+                                            //     $conn = $this->getEntityManager()->getConnection();
+                                            //     $stmt = $conn->prepare($sql);
+                                            //     $stmt->execute();
+                                            //     $entityOpcionesCargo = $stmt->fetchAll();
                                                 
-                                                if ($entityOpcionesCargo != null) {
-                                                    $entityManager = $this->getEntityManager();
-                                                    foreach ($entityOpcionesCargo as $opcion) {
-                                                        $opcionEntity = $entityManager->getRepository(OpcionesCargo::class)->find($idOptions);
-                                                        if ($opcionEntity) {
-                                                            $entityManager->remove($opcionEntity);
-                                                            $entityManager->flush();
-                                                        }
-                                                    }
-                                                }
+                                            //     if ($entityOpcionesCargo != null) {
+                                            //         $entityManager = $this->getEntityManager();
+                                            //         foreach ($entityOpcionesCargo as $opcion) {
+                                            //             $opcionEntity = $entityManager->getRepository(OpcionesCargo::class)->find($idOptions);
+                                            //             if ($opcionEntity) {
+                                            //                 $entityManager->remove($opcionEntity);
+                                            //                 $entityManager->flush();
+                                            //             }
+                                            //         }
+                                            //     }
         
-                                                foreach($options["scoreBycharges"] as $optionsCargos){
-                                                    $opcionesCargos = new OpcionesCargo();
-                                                    $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
-                                                    $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
-                                                    $opcionesCargos->setOpcion($entityOpciones);
-                                                    $opcionesCargos->setScore($optionsCargos["score"]);
-                                                    $opcionesCargos->setCreateBy($currentUser->getUsername());
-                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                                    if($empresa)
-                                                       $opcionesCargos->setIdempresa($empresa);
-                                                    $entityManager->persist($opcionesCargos);
-                                                    $entityManager->flush();                        
-                                                }
-                                            }
+                                            //     foreach($options["scoreBycharges"] as $optionsCargos){
+                                            //         $opcionesCargos = new OpcionesCargo();
+                                            //         $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
+                                            //         $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
+                                            //         $opcionesCargos->setOpcion($entityOpciones);
+                                            //         $opcionesCargos->setScore($optionsCargos["score"]);
+                                            //         $opcionesCargos->setCreateBy($currentUser->getUsername());
+                                            //         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                            //         if($empresa)
+                                            //            $opcionesCargos->setIdempresa($empresa);
+                                            //         $entityManager->persist($opcionesCargos);
+                                            //         $entityManager->flush();                        
+                                            //     }
+                                            // }
 
                                         }
                                     }
                                 }
                             }else{
-                                $pregunta = new Pregunta();
+                                $pregunta = new PreguntaEvaluacion360();
                                 $pregunta->setPregunta(!is_null($preguntas["label"])?$preguntas["label"]:null);
                                 $pregunta->setOrden(!is_null($preguntas["order"])?$preguntas["order"]:null);
-                                $pregunta->setIdInput(!is_null($preguntas["inputType"])?$entityManager->getRepository(TipoInput::class)->find($preguntas["inputType"]["id"]):null);
+                                $pregunta->setIdInput(!is_null($preguntas["inputType"])?$entityManager->getRepository(TipoInputEvaluacion360::class)->find($preguntas["inputType"]["id"]):null);
+
                                 $pregunta->setObligatorio(!is_null($preguntas["required"])?$preguntas["required"]:null);
                                 $pregunta->setPuntos(!is_null($preguntas["score"])?$preguntas["score"]:null);
-                                $pregunta->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(TipoCategoria::class)->find($preguntas["categoryId"]):null);
+                                $entity->setIdCategoria(!is_null($preguntas["categoryId"])?$entityManager->getRepository(Competencia360::class)->find($preguntas["categoryId"]):null);
                                 $pregunta->setIdInstrumento($entityInstrumento);
                                 $pregunta->setSeccion($entitySeccion);
                                 $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
@@ -311,11 +312,11 @@ class Instrumento360Repository extends ServiceEntityRepository
                                 $entityManager->flush();    
                                 if(isset($preguntas["options"])){
                                     foreach($preguntas["options"] as $options){
-                                            $entityOpciones = new Opciones();
+                                            $entityOpciones = new OpcionesEvaluacion360();
                                             $entityOpciones->setCorrecta(1);
                                             $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                             $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                            $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                         //   $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                             $entityOpciones->setIdPregunta($pregunta);
                                             $entityOpciones->setUpdateAt(new \DateTime());
                                             $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
@@ -327,21 +328,21 @@ class Instrumento360Repository extends ServiceEntityRepository
                                             $entityManager->persist($entityOpciones);
                                             $entityManager->flush(); 
                                             $idOptions=$entityOpciones->getId();
-                                            if(isset($options["scoreBycharges"])){
-                                                foreach($options["scoreBycharges"] as $optionsCargos){
-                                                    $opcionesCargos = new OpcionesCargo();
-                                                    $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
-                                                    $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
-                                                    $opcionesCargos->setOpcion($entityOpciones);
-                                                    $opcionesCargos->setScore($optionsCargos["score"]);
-                                                    $opcionesCargos->setCreateBy($currentUser->getUsername());
-                                                    $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
-                                                    if($empresa)
-                                                       $opcionesCargos->setIdempresa($empresa);
-                                                    $entityManager->persist($opcionesCargos);
-                                                    $entityManager->flush();                        
-                                                }
-                                            }
+                                            // if(isset($options["scoreBycharges"])){
+                                            //     foreach($options["scoreBycharges"] as $optionsCargos){
+                                            //         $opcionesCargos = new OpcionesCargo();
+                                            //         $cargo =$entityManager->getRepository(Cargo::class)->find($optionsCargos["idCargo"]);
+                                            //         $opcionesCargos->setIdCargo($cargo!=null?$cargo:null);
+                                            //         $opcionesCargos->setOpcion($entityOpciones);
+                                            //         $opcionesCargos->setScore($optionsCargos["score"]);
+                                            //         $opcionesCargos->setCreateBy($currentUser->getUsername());
+                                            //         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+                                            //         if($empresa)
+                                            //            $opcionesCargos->setIdempresa($empresa);
+                                            //         $entityManager->persist($opcionesCargos);
+                                            //         $entityManager->flush();                        
+                                            //     }
+                                            // }
 
                                             
 
@@ -621,5 +622,385 @@ class Instrumento360Repository extends ServiceEntityRepository
 
     }
 
+
+    public function clonar($id) {
+        $em = $this->getEntityManager();
+        
+        // 1. Cargar todo en una sola consulta usando JOIN FETCH
+        $encuestaData = $em->createQueryBuilder()
+            ->select('a, f, p, r')
+            ->from("App\Entity\Instrumento360\Instrumento360", "a")
+            ->leftJoin('a.seccions', 'f')
+            ->leftJoin('f.preguntas', 'p')
+            ->leftJoin('p.opciones', 'r')
+            ->where('a.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getResult();
+
+        if (empty($encuestaData)) {
+            return null;
+        }
+
+        $originalEntity = $encuestaData[0];
+        
+        // 2. Clonar la entidad principal
+        $newEntity = clone $originalEntity;
+        $newEntity->setFechaPublicacion(null);
+        $newEntity->setFechaVigencia(new \DateTime('now +1 day'));
+//        $newEntity->setOrden(1);
+        $newEntity->setPublicar(0);
+        
+        // 3. Clonar secciones y sus relaciones en una sola transacción
+        $em->beginTransaction();
+        try {
+            $em->persist($newEntity);
+            
+            // Mapa para rastrear las competencias clonadas
+            $competenciaMap = [];
+            
+            // Clonar secciones
+            foreach ($originalEntity->getSeccions() as $seccion) {
+                $newSeccion = clone $seccion;
+                $newSeccion->setInstrumento($newEntity);
+                $em->persist($newSeccion);
+                
+                // Clonar preguntas
+                foreach ($seccion->getPreguntas() as $pregunta) {
+                    $newPregunta = clone $pregunta;
+                    $newPregunta->setIdInstrumento($newEntity);
+                    $newPregunta->setSeccion($newSeccion);
+                    
+                    // Clonar la competencia si existe y no ha sido clonada antes
+                    if ($pregunta->getIdCategoria()) {
+                        $competenciaOriginal = $pregunta->getIdCategoria();
+                        if (!isset($competenciaMap[$competenciaOriginal->getId()])) {
+                            $newCompetencia = clone $competenciaOriginal;
+                            $em->persist($newCompetencia);
+                            
+                            // Clonar competenciasCargoEscalas
+                            foreach ($competenciaOriginal->getCompetenciaCargoEscala() as $cargoEscala) {
+                                $newCargoEscala = clone $cargoEscala;
+                                $newCargoEscala->setCompetencia($newCompetencia);
+                                $em->persist($newCargoEscala);
+                            }
+                            
+                            // Clonar competenciasNivelPonderacion
+                            foreach ($competenciaOriginal->getCompetenciasNivelPonderacion() as $nivelPonderacion) {
+                                $newNivelPonderacion = clone $nivelPonderacion;
+                                $newNivelPonderacion->setCompetencia($newCompetencia);
+                                $em->persist($newNivelPonderacion);
+                            }
+                            
+                            $competenciaMap[$competenciaOriginal->getId()] = $newCompetencia;
+                        }
+                        $newPregunta->setIdCategoria($competenciaMap[$competenciaOriginal->getId()]);
+                    }
+                    
+                    $em->persist($newPregunta);
+                    
+                    // Clonar opciones
+                    foreach ($pregunta->getOpciones() as $opcion) {
+                        $newOpcion = clone $opcion;
+                        $newOpcion->setIdPregunta($newPregunta);
+                        $em->persist($newOpcion);
+                    }
+                }
+            }
+            
+            // 4. Hacer un solo flush al final
+            $em->flush();
+            $em->commit();
+            
+            return $newEntity->getId();
+            
+        } catch (\Exception $e) {
+            $em->rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * Eliminar sección y todos sus registros relacionados usando Doctrine ORM.
+     */
+    public function deleteSeccion($seccionId): JsonResponse
+    {
+        $entityManager = $this->getEntityManager();
+        
+        // Buscar la sección
+        $seccion = $entityManager->getRepository(SeccionEvaluacion360::class)->find($seccionId);
+        
+        if (!$seccion) {
+            return new JsonResponse(['msg' => 'No existe la sección con el id: ' . $seccionId], 404);
+        }
+        
+        // Verificar si el instrumento está publicado
+        $instrumento = $seccion->getInstrumento();
+        if ($instrumento && $instrumento->getPublicar() == 1) {
+            return new JsonResponse(['msg' => 'No se puede eliminar una sección de un instrumento publicado'], 400);
+        }
+        
+        $entityManager->beginTransaction();
+        
+        try {
+            // 1. Eliminar todas las respuestas relacionadas con las preguntas de esta sección
+            $preguntas = $seccion->getPreguntas();
+            foreach ($preguntas as $pregunta) {
+                // Eliminar respuestas de la pregunta
+                $respuestas = $pregunta->getRespuestas();
+                foreach ($respuestas as $respuesta) {
+                    $entityManager->remove($respuesta);
+                }
+                
+                // Eliminar opciones de la pregunta
+                $opciones = $pregunta->getOpciones();
+                foreach ($opciones as $opcion) {
+                    // Eliminar respuestas de la opción
+                    $respuestasOpcion = $opcion->getRespuestas();
+                    foreach ($respuestasOpcion as $respuestaOpcion) {
+                        $entityManager->remove($respuestaOpcion);
+                    }
+                    $entityManager->remove($opcion);
+                }
+                
+                // Eliminar la pregunta
+                $entityManager->remove($pregunta);
+            }
+            
+            // 2. Eliminar la sección
+            $entityManager->remove($seccion);
+            
+            // 3. Hacer commit de la transacción
+            $entityManager->flush();
+            $entityManager->commit();
+            
+            return new JsonResponse(['msg' => 'Sección eliminada correctamente con todos sus registros relacionados'], 200);
+            
+        } catch (\Exception $e) {
+            // Rollback en caso de error
+            $entityManager->rollback();
+            return new JsonResponse(['msg' => 'Error al eliminar la sección: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Eliminar pregunta y todos sus registros relacionados usando Doctrine ORM.
+     */
+    public function deletePregunta($preguntaId): JsonResponse
+    {
+        $entityManager = $this->getEntityManager();
+        
+        // Buscar la pregunta
+        $pregunta = $entityManager->getRepository(PreguntaEvaluacion360::class)->find($preguntaId);
+        
+        if (!$pregunta) {
+            return new JsonResponse(['msg' => 'No existe la pregunta con el id: ' . $preguntaId], 404);
+        }
+        
+        // Verificar si el instrumento está publicado
+        $instrumento = $pregunta->getIdInstrumento();
+       
+        if ($instrumento && $instrumento->getPublicar() == 1) {
+            return new JsonResponse(['msg' => 'No se puede eliminar una pregunta de un instrumento publicado'], 400);
+        }
+ 
+        $entityManager->beginTransaction();
+        
+        try {
+            // 1. Eliminar todas las respuestas relacionadas con la pregunta
+            $respuestas = $pregunta->getRespuestas();
+            foreach ($respuestas as $respuesta) {
+                $entityManager->remove($respuesta);
+            }
+            
+            // 2. Eliminar todas las opciones de la pregunta y sus respuestas
+            $opciones = $pregunta->getOpciones();
+            foreach ($opciones as $opcion) {
+                // Eliminar respuestas de la opción
+                $respuestasOpcion = $opcion->getRespuestas();
+                foreach ($respuestasOpcion as $respuestaOpcion) {
+                    $entityManager->remove($respuestaOpcion);
+                }
+                
+                // Eliminar la opción
+                $entityManager->remove($opcion);
+            }
+            
+            // 3. Eliminar la pregunta
+            $entityManager->remove($pregunta);
+            
+            // 4. Hacer commit de la transacción
+            $entityManager->flush();
+            $entityManager->commit();
+            
+            return new JsonResponse(['msg' => 'Pregunta eliminada correctamente con todos sus registros relacionados'], 200);
+            
+        } catch (\Exception $e) {
+            // Rollback en caso de error
+            $entityManager->rollback();
+            return new JsonResponse(['msg' => 'Error al eliminar la pregunta: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Eliminar opción y todos sus registros relacionados usando Doctrine ORM.
+     */
+    public function deleteOpcion($opcionId): JsonResponse
+    {
+        $entityManager = $this->getEntityManager();
+        
+        // Buscar la opción
+        $opcion = $entityManager->getRepository(OpcionesEvaluacion360::class)->find($opcionId);
+        
+        if (!$opcion) {
+            return new JsonResponse(['msg' => 'No existe la opción con el id: ' . $opcionId], 404);
+        }
+        
+        // Verificar si el instrumento está publicado
+        $pregunta = $opcion->getIdPregunta();
+        $instrumento = $pregunta ? $pregunta->getIdInstrumento() : null;
+        
+        if ($instrumento && $instrumento->getPublicar() == 1) {
+            return new JsonResponse(['msg' => 'No se puede eliminar una opción de un instrumento publicado'], 400);
+        }
+        
+        $entityManager->beginTransaction();
+        
+        try {
+            // 1. Eliminar todas las respuestas relacionadas con la opción
+            $respuestas = $opcion->getRespuestas();
+            foreach ($respuestas as $respuesta) {
+                $entityManager->remove($respuesta);
+            }
+            
+            // 2. Eliminar la opción
+            $entityManager->remove($opcion);
+            
+            // 3. Hacer commit de la transacción
+            $entityManager->flush();
+            $entityManager->commit();
+            
+            return new JsonResponse(['msg' => 'Opción eliminada correctamente con todos sus registros relacionados'], 200);
+            
+        } catch (\Exception $e) {
+            // Rollback en caso de error
+            $entityManager->rollback();
+            return new JsonResponse(['msg' => 'Error al eliminar la opción: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Eliminar instrumento360 y todos sus registros relacionados usando Doctrine ORM.
+     */
+    public function deleteInstrumento360($instrumentoId): JsonResponse
+    {
+        $entityManager = $this->getEntityManager();
+        
+        // Buscar el instrumento
+        $instrumento = $entityManager->getRepository(Instrumento360::class)->find($instrumentoId);
+        
+        if (!$instrumento) {
+            return new JsonResponse(['msg' => 'No existe el instrumento con el id: ' . $instrumentoId], 404);
+        }
+        
+        // Verificar si el instrumento está publicado
+        if ($instrumento->getPublicar() == 1) {
+            return new JsonResponse(['msg' => 'No se puede eliminar un instrumento publicado'], 400);
+        }
+        
+        $entityManager->beginTransaction();
+        
+        try {
+            // 1. Eliminar todas las evaluaciones relacionadas con usuarios asignados
+            $usuariosAsignados = $instrumento->getInstrumento360UsuariosAsignados();
+            foreach ($usuariosAsignados as $usuarioAsignado) {
+                // Buscar y eliminar evaluaciones relacionadas
+                $evaluaciones = $entityManager->getRepository(Instrumento360Evaluaciones::class)
+                    ->findBy(['IdInstrumentoUsuario' => $usuarioAsignado]);
+                
+                foreach ($evaluaciones as $evaluacion) {
+                    $entityManager->remove($evaluacion);
+                }
+                
+                // Eliminar el usuario asignado
+                $entityManager->remove($usuarioAsignado);
+            }
+            
+            // 2. Eliminar todas las secciones y sus elementos relacionados
+            $secciones = $instrumento->getSeccions();
+            foreach ($secciones as $seccion) {
+                // Eliminar todas las preguntas de la sección
+                $preguntas = $seccion->getPreguntas();
+                foreach ($preguntas as $pregunta) {
+                    // Eliminar respuestas de la pregunta
+                    $respuestas = $pregunta->getRespuestas();
+                    foreach ($respuestas as $respuesta) {
+                        $entityManager->remove($respuesta);
+                    }
+                    
+                    // Eliminar opciones de la pregunta
+                    $opciones = $pregunta->getOpciones();
+                    foreach ($opciones as $opcion) {
+                        // Eliminar respuestas de la opción
+                        $respuestasOpcion = $opcion->getRespuestas();
+                        foreach ($respuestasOpcion as $respuestaOpcion) {
+                            $entityManager->remove($respuestaOpcion);
+                        }
+                        
+                        // Eliminar la opción
+                        $entityManager->remove($opcion);
+                    }
+                    
+                    // Eliminar la pregunta
+                    $entityManager->remove($pregunta);
+                }
+                
+                // Eliminar la sección
+                $entityManager->remove($seccion);
+            }
+            
+            // 3. Eliminar todas las preguntas directas del instrumento (por si acaso)
+            $preguntasDirectas = $instrumento->getPreguntas();
+            foreach ($preguntasDirectas as $pregunta) {
+                // Eliminar respuestas de la pregunta
+                $respuestas = $pregunta->getRespuestas();
+                foreach ($respuestas as $respuesta) {
+                    $entityManager->remove($respuesta);
+                }
+                
+                // Eliminar opciones de la pregunta
+                $opciones = $pregunta->getOpciones();
+                foreach ($opciones as $opcion) {
+                    // Eliminar respuestas de la opción
+                    $respuestasOpcion = $opcion->getRespuestas();
+                    foreach ($respuestasOpcion as $respuestaOpcion) {
+                        $entityManager->remove($respuestaOpcion);
+                    }
+                    
+                    // Eliminar la opción
+                    $entityManager->remove($opcion);
+                }
+                
+                // Eliminar la pregunta
+                $entityManager->remove($pregunta);
+            }
+            
+            // 4. Eliminar el instrumento
+            $entityManager->remove($instrumento);
+            
+            // 5. Hacer commit de la transacción
+            $entityManager->flush();
+            $entityManager->commit();
+            
+            return new JsonResponse(['msg' => 'Instrumento360 eliminado correctamente con todos sus registros relacionados'], 200);
+            
+        } catch (\Exception $e) {
+            // Rollback en caso de error
+            $entityManager->rollback();
+            return new JsonResponse(['msg' => 'Error al eliminar el instrumento360: ' . $e->getMessage()], 500);
+        }
+    }
+
+    
 
 }

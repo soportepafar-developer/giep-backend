@@ -117,7 +117,7 @@ class Instrumento360Controller extends AbstractController
         try {
             $data = json_decode($request->getContent(),true);
             $em =$this->getDoctrine()->getManager();
-            $repository = $this->getDoctrine()->getRepository(InstrumentoCaptura::class);
+            $repository = $this->getDoctrine()->getRepository(Instrumento360::class);
             return $repository->put($data,$id,$validator,$helper); 
         } catch (Exception $e) {
             return new JsonResponse(['msg'=>'Error del Servidor'],500);
@@ -243,5 +243,142 @@ class Instrumento360Controller extends AbstractController
             return new JsonResponse(['msg'=>'Error del Servidor'],500);
         }
     }
+
+
+      /**
+        *  Clonar Instrumento360 by Instrumento360 Id.
+        * @Route("/api/instrumento360/{id}/clonar", methods={"GET"})
+        * @OA\Post(
+         * summary="Clonar 360",
+         * description="Clonar 360",
+         * operationId="clonarinstrumento360",
+         * tags={"Instrumento360"},
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+         * @OA\Tag(name="Instrumento360")
+         * @Security(name="Bearer")
+    */   
+    public function Clonar($id,Request $request,Instrumento360Repository $repository): JsonResponse
+    {
+
+        try {
+            $data = $repository
+            ->clonar($id);
+            return new JsonResponse(['msg'=>'Instrumento Copiado '.$data],200);
+
+        } catch (Exception $e) {
+             return new JsonResponse(['msg'=>'Error del Servidor'],500);
+        }
+
+    }
+
+    
+    /**
+        * @Route("/api/instrumento360/seccion/{seccionId}", methods={"DELETE"})
+        * @OA\Delete(
+         * summary="Delete Seccion360",
+         * description="Delete Seccion360",
+         * operationId="deleteSeccion360",
+         * tags={"Instrumento360"},
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */  
+     public function deleteSeccion($seccionId): JsonResponse
+    {
+        try {
+            return $this->evaluacionesRepository->deleteSeccion($seccionId);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msg' => 'Error del Servidor: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+        * @Route("/api/instrumento360/pregunta/{preguntaId}", methods={"DELETE"})
+        * @OA\Delete(
+         * summary="Delete Pregunta360",
+         * description="Delete Pregunta360",
+         * operationId="deletePregunta360",
+         * tags={"Instrumento360"},
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */  
+     public function deletePregunta($preguntaId): JsonResponse
+    {
+        try {
+            return $this->evaluacionesRepository->deletePregunta($preguntaId);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msg' => 'Error del Servidor: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+        * @Route("/api/instrumento360/opcion/{opcionId}", methods={"DELETE"})
+        * @OA\Delete(
+         * summary="Delete Opcion360",
+         * description="Delete Opcion360",
+         * operationId="deleteOpcion360",
+         * tags={"Instrumento360"},
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */  
+     public function deleteOpcion($opcionId): JsonResponse
+    {
+        try {
+            return $this->evaluacionesRepository->deleteOpcion($opcionId);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msg' => 'Error del Servidor: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+        * @Route("/api/instrumento360/{instrumentoId}", methods={"DELETE"})
+        * @OA\Delete(
+         * summary="Delete Instrumento360",
+         * description="Delete Instrumento360",
+         * operationId="deleteInstrumento360",
+         * tags={"Instrumento360"},
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */  
+     public function deleteInstrumento360($instrumentoId): JsonResponse
+    {
+        try {
+            return $this->evaluacionesRepository->deleteInstrumento360($instrumentoId);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msg' => 'Error del Servidor: ' . $e->getMessage()], 500);
+        }
+    }
+
+
 
 } 
