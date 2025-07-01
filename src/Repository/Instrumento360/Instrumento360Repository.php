@@ -234,7 +234,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                                                 if($entityOpciones!=null){
                                                     $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                                     $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                                  //  $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
                                                     $entityOpciones->setUpdateBy($currentUser->getUserName());                                
@@ -245,7 +245,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                                                     $entityOpciones->setCorrecta(1);
                                                     $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                                     $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                                    //$entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                                    $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                                     $entityOpciones->setIdPregunta($entity);
                                                     $entityOpciones->setUpdateAt(new \DateTime());
                                                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
@@ -316,7 +316,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                                             $entityOpciones->setCorrecta(1);
                                             $entityOpciones->setNombre(!is_null($options["label"])?$options["label"]:null);
                                             $entityOpciones->setValor(!is_null($options["value"])?$options["value"]:null);
-                                         //   $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
+                                            $entityOpciones->setPuntos(is_null($options["scoreBycharges"])?!is_null($options["score"])?$options["score"]:null:null);
                                             $entityOpciones->setIdPregunta($pregunta);
                                             $entityOpciones->setUpdateAt(new \DateTime());
                                             $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
