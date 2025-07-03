@@ -478,15 +478,15 @@ class Instrumento360Repository extends ServiceEntityRepository
                 $editable=0;
             }
             
-            /* if($valor->getInstrumentoUsuarios()!=null){
-                foreach($valor->getInstrumentoUsuarios() as $instrumentosuser){
+            if($valor->getInstrumento360UsuariosAsignados()!=null){
+                foreach($valor->getInstrumento360UsuariosAsignados() as $instrumentosuser){
                         if($instrumentosuser->getRespondida()==1){
                             $editable=0;
                         }
                         $usersData[]=array("id"=>$instrumentosuser->getIdUser()->getId(),"nombre"=>$instrumentosuser->getIdUser()->getPrimerNombre(). " ".$instrumentosuser->getIdUser()->getPrimerApellido(),"email"=>$instrumentosuser->getIdUser()->getEmail()
                         ,"respondida"=>$instrumentosuser->getRespondida(),"roles"=>$instrumentosuser->getIdUser()->getRoles());                       
                 }
-            } */  
+            }
 
             $instrumentoDto->editable=$editable;
             $instrumentoDto->users=$usersData;
