@@ -529,8 +529,19 @@ class Instrumento360Repository extends ServiceEntityRepository
             $offset = ($data['page'] - 1) * $data['rowByPage'];
         }
        
+
         $query= $this->createQueryBuilder('a');
+
         $query->orderBy('a.id', 'ASC');
+        if($data['word']!=null){
+            $query->where("a.nombre like '%".$data['word']."%' ");
+        }
+
+        $query->andwhere("a.evaluatorUserId =".$this->security->getUser()->getId());
+        $query->andWhere("a.publicar =1");
+        $query->andWhere("a.fechaVigencia  >= CURRENT_DATE()" );
+
+        //$query->orderBy('a.id', 'ASC');
         if($data['word']!=null){
             $query->where("a.nombre like '%".$data['word']."%' and a.empresa = ".$empresa->getId()." "); 
         }else{
@@ -587,6 +598,365 @@ class Instrumento360Repository extends ServiceEntityRepository
        return array("count"=>count($paginatorTotalCount),"data"=>$datainstrumentocap);
  
     }
+
+
+    public function findListByInstructor($data){
+
+        $entity= $this->getEntityManager()->createQueryBuilder();
+
+        if ($data['page'] != 0 && $data['page'] != 1) {
+            $offset = ($data['page'] - 1) * $data['rowByPage'];
+        }
+       
+        $query= $this->createQueryBuilder('a');
+        $query->orderBy('a.id', 'ASC');
+        if($data['word']!=null){
+            $query->where("a.nombre like '%".$data['word']."%' ");
+        }
+
+        //$query->andwhere("a.evaluatorUserId =".$this->security->getUser()->getId());
+        //$query->andWhere("a.publicar =1");
+
+        //Devolver solo los Autoevaluacion 
+        //$query->andWhere("a.tipoInstrumento =2");
+      
+        //$query->andWhere("a.fechaVigencia  >= CURRENT_DATE()" );
+
+        $query->orderBy('a.id', 'ASC');   
+        $query->getQuery();
+
+        $paginatorTotalCount = new Paginator($query);	
+        $paginator = new Paginator($query);	
+    	$paginator->getQuery()	
+      	->setFirstResult($data['rowByPage'] *($data['page']-1))	
+      	->setMaxResults($data['rowByPage']);	
+        $dataUser=array();
+        $hijos=[];
+        $rolesUser=[];
+        $dataevaluacion=array();
+
+        foreach($paginator as $clave=>$valor){
+           if($valor->getTipoInstrumento()->getId() ==2){
+
+            $evaluacionDto =new Instrumento360OutPutDto();
+            $evaluacionDto->id=$valor->getId();
+            $evaluacionDto->nombre=$valor->getNombre();
+            $evaluacionDto->descripcion=$valor->getDescripcion();
+
+            $evaluacionDto->idTipoUnidad=($valor->getTipoUnidad()!=null)?array("id"=>$valor->getTipoUnidad()->getId(),"Nombre"=>$valor->getTipoUnidad()->getNombre(),"Factor"=>$valor->getTipoUnidad()->getFactor()):[];
+            $evaluacionDto->unidad=$valor->getTipounidad();
+
+            $evaluacionDto->tipoInstrumento=($valor->getTipoInstrumento()!=null)?array("id"=>$valor->getTipoInstrumento()->getId(),"Nombre"=>$valor->getTipoInstrumento()->getNombre()):[];
+
+            //$evaluacionDto->path=$valor->getPath();
+            //$evaluacionDto->orden=$valor->getOrden();;
+
+            $evaluacionDto->fechaPublicacion=!is_null($valor->getFechaPublicacion())?$valor->getFechaPublicacion()->format("Y-m-d"):null;
+            $evaluacionDto->createAt=!is_null($valor->getCreateAt())?$valor->getCreateAt()->format("Y-m-d"):null;
+            $evaluacionDto->fechaVigencia=$valor->getFechaVigencia()->format("Y-m-d");
+            $evaluacionDto->publicar=$valor->getPublicar();
+            $evaluacionDto->questionsByCategory=$valor->getQuestionsByCategory();
+            $evaluacionDto->puntosGlobales=$valor->getPuntosGlobales();
+            $evaluacionDto->editable=1;
+
+            $entity= $this->getEntityManager()->createQueryBuilder();
+            
+            $EvaluacionDataRespondida= $entity->select("a,q")
+                ->from("App\Entity\Instrumento360\Instrumento360","a")
+                ->innerJoin('a.instrumento360UsuariosAsignados', 'q')
+                ->Where('q.respondida=1')
+                ->andWhere('a.id='.$valor->getId())
+                ->orderBy('a.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+
+            $EvaluacionDataNoRespondida= $entity->select("b,h")
+                ->from("App\Entity\Instrumento360\Instrumento360","b")
+                ->innerJoin('b.instrumento360UsuariosAsignados', 'h')
+                ->Where('h.respondida=0')
+                ->andWhere('b.id='.$valor->getId())
+                ->orderBy('b.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+
+            $sqlUser = " SELECT count(*) as total FROM instrumento360 a INNER JOIN instrumento360_usuarios_asignados b 
+            ON a.id = b.instrumento360_id WHERE b.respondida = 0 AND a.id = ".$valor->getId()  ;
+            $conn = $this->getEntityManager()->getConnection();
+            $stmt = $conn->prepare($sqlUser);
+            $stmt->execute();
+            $dataUserCount=$stmt->fetchAll();
+        
+
+
+            if($evaluacionDto->publicar==1){
+                $evaluacionDto->editable=0;
+            }
+
+            if(count($EvaluacionDataRespondida)>0){
+                $evaluacionDto->editable=0;
+            }
+
+           $evaluacionDto->userIfEvaluating=$dataUserCount[0]["total"];
+            $dataevaluacion[]=$evaluacionDto;
+           
+          // tipo PAR
+          }else if($valor->getTipoInstrumento()->getId() ==3){ 
+
+                $cargosDuplicados = $this->getEntityManager()->createQueryBuilder()
+                    ->select('IDENTITY(h.cargoUser) AS cargoId')
+                    ->from('App\Entity\Instrumento360\Instrumento360UsuariosAsignados', 'h')
+                    ->where('h.instrumento360 = :id')
+                    ->andWhere('IDENTITY(h.cargoUser) IN (:cargos)')
+                    ->groupBy('h.cargoUser')
+                    ->having('COUNT(h.id) > 1')
+                    ->setParameter('id', $valor->getId())
+                     ->setParameter('cargos', $this->security->getUser()->getIdCargo())
+                    ->getQuery()
+                    ->getResult();
+
+                // Extraer solo los IDs
+                $cargoIds = array_column($cargosDuplicados, 'cargoId');
+
+
+                // Paso 2: obtener todos los usuarios con esos cargos
+                $usuariosAsignados = $this->getEntityManager()->createQueryBuilder()
+                    ->select('h')
+                    ->from('App\Entity\Instrumento360\Instrumento360UsuariosAsignados', 'h')
+                    ->where('h.instrumento360 = :id')
+                    ->andWhere('IDENTITY(h.cargoUser) IN (:cargos)')
+                    ->setParameter('id', $valor->getId())
+                    ->setParameter('cargos', $cargoIds)
+                    ->orderBy('h.cargoUser', 'ASC')
+                    ->getQuery()
+                    ->getResult();
+
+                   //print_r(json_encode($usuariosAsignados, JSON_PRETTY_PRINT));
+                   $datosUsuarios = [];
+                   foreach ($usuariosAsignados as $usuarioAsignado) {
+                       $datosUsuarios[] = [
+                            'usuarioId'    => $usuarioAsignado->getUser()->getId(),
+                            'cargoId'      => $usuarioAsignado->getCargoUser()->getId(),
+                            // Si prefieres solo el nombre del cargo:
+                            // 'cargoNombre' => $usuarioAsignado->getCargoUser()->getNombre(),
+                            'respondida'   => $usuarioAsignado->getRespondida()
+                        ];
+                        //echo json_encode($data, JSON_PRETTY_PRINT); // puedes enviar esto como respuesta JSON
+                    }
+
+                    //print_r(json_encode($datosUsuarios, JSON_PRETTY_PRINT));
+ 
+                    //$a=$usuariosAsignadosCargos[0]['cargoUser'];
+                    /* $instrumento = $usuariosAsignadosCargos[0];
+                    $usuarioAsignado = $instrumento->getInstrumento360UsuariosAsignados()->first(); // si es una colección
+                    $cargoUser = $usuarioAsignado ? $usuarioAsignado->getCargoUser() : null; */
+
+
+
+                //print_r($usuariosAsignadosCargos);
+               $Par_Uusario_Mismo_Cargo = $cargosDuplicados;
+               $Par_Uusario_Mismo_Cargo = count($Par_Uusario_Mismo_Cargo) > 0;
+                if($Par_Uusario_Mismo_Cargo ==true){ 
+
+                   $evaluacionDto =new Instrumento360OutPutDto();
+
+                   $evaluacionDto->instrumento360UsuariosAsignados=$datosUsuarios;
+
+
+                    $evaluacionDto->id=$valor->getId();
+                    $evaluacionDto->nombre=$valor->getNombre();
+                    $evaluacionDto->descripcion=$valor->getDescripcion();
+
+                    $evaluacionDto->idTipoUnidad=($valor->getTipoUnidad()!=null)?array("id"=>$valor->getTipoUnidad()->getId(),"Nombre"=>$valor->getTipoUnidad()->getNombre(),"Factor"=>$valor->getTipoUnidad()->getFactor()):[];
+                    $evaluacionDto->unidad=$valor->getTipounidad();
+
+                    $evaluacionDto->tipoInstrumento=($valor->getTipoInstrumento()!=null)?array("id"=>$valor->getTipoInstrumento()->getId(),"Nombre"=>$valor->getTipoInstrumento()->getNombre()):[];
+
+                    //$evaluacionDto->path=$valor->getPath();
+                    //$evaluacionDto->orden=$valor->getOrden();;
+
+                    $evaluacionDto->fechaPublicacion=!is_null($valor->getFechaPublicacion())?$valor->getFechaPublicacion()->format("Y-m-d"):null;
+                    $evaluacionDto->createAt=!is_null($valor->getCreateAt())?$valor->getCreateAt()->format("Y-m-d"):null;
+                    $evaluacionDto->fechaVigencia=$valor->getFechaVigencia()->format("Y-m-d");
+                    $evaluacionDto->publicar=$valor->getPublicar();
+                    $evaluacionDto->questionsByCategory=$valor->getQuestionsByCategory();
+                    $evaluacionDto->puntosGlobales=$valor->getPuntosGlobales();
+                    $evaluacionDto->editable=1;
+
+                    $entity= $this->getEntityManager()->createQueryBuilder();
+                    
+                    $EvaluacionDataRespondida= $entity->select("a,q")
+                        ->from("App\Entity\Instrumento360\Instrumento360","a")
+                        ->innerJoin('a.instrumento360UsuariosAsignados', 'q')
+                        ->Where('q.respondida=1')
+                        ->andWhere('a.id='.$valor->getId())
+                        ->orderBy('a.id', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+
+                    $EvaluacionDataNoRespondida= $entity->select("b,h")
+                        ->from("App\Entity\Instrumento360\Instrumento360","b")
+                        ->innerJoin('b.instrumento360UsuariosAsignados', 'h')
+                        ->Where('h.respondida=0')
+                        ->andWhere('b.id='.$valor->getId())
+                        ->orderBy('b.id', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+
+                    $sqlUser = " SELECT count(*) as total FROM instrumento360 a INNER JOIN instrumento360_usuarios_asignados b 
+                    ON a.id = b.instrumento360_id WHERE b.respondida = 0 AND a.id = ".$valor->getId()  ;
+                    $conn = $this->getEntityManager()->getConnection();
+                    $stmt = $conn->prepare($sqlUser);
+                    $stmt->execute();
+                    $dataUserCount=$stmt->fetchAll();
+                
+
+
+                    if($evaluacionDto->publicar==1){
+                        $evaluacionDto->editable=0;
+                    }
+
+                    if(count($EvaluacionDataRespondida)>0){
+                        $evaluacionDto->editable=0;
+                    }
+
+                $evaluacionDto->userIfEvaluating=$dataUserCount[0]["total"];
+                    $dataevaluacion[]=$evaluacionDto;
+
+
+
+                        }
+           // tipo Supervisorio
+          }else if($valor->getTipoInstrumento()->getId() ==1){ 
+                $cargoUserLogin = $this->security->getUser()->getIdCargo()->getId();
+                $cargoUserLogin++;
+
+                $cargosDuplicados = $this->getEntityManager()->createQueryBuilder()
+                    ->select('IDENTITY(h.cargoUser) AS cargoId')
+                    ->from('App\Entity\Instrumento360\Instrumento360UsuariosAsignados', 'h')
+                    ->where('h.instrumento360 = :id')
+                    ->andWhere('IDENTITY(h.cargoUser) IN (:cargos)')
+                    ->groupBy('h.cargoUser')
+                    ->having('COUNT(h.id) > 0')
+                    ->setParameter('id', $valor->getId())
+                     ->setParameter('cargos', $cargoUserLogin)
+                    ->getQuery()
+                    ->getResult();
+
+                // Extraer solo los IDs
+                $cargoIds = array_column($cargosDuplicados, 'cargoId');
+
+
+                // Paso 2: obtener todos los usuarios con esos cargos
+                $usuariosAsignados = $this->getEntityManager()->createQueryBuilder()
+                    ->select('h')
+                    ->from('App\Entity\Instrumento360\Instrumento360UsuariosAsignados', 'h')
+                    ->where('h.instrumento360 = :id')
+                    ->andWhere('IDENTITY(h.cargoUser) IN (:cargos)')
+                    ->setParameter('id', $valor->getId())
+                    ->setParameter('cargos', $cargoIds)
+                    ->orderBy('h.cargoUser', 'ASC')
+                    ->getQuery()
+                    ->getResult();
+    
+                     $datosUsuarios = [];
+                   foreach ($usuariosAsignados as $usuarioAsignado) {
+                       $datosUsuarios[] = [
+                            'usuarioId'    => $usuarioAsignado->getUser()->getId(),
+                            'cargoId'      => $usuarioAsignado->getCargoUser()->getId(),
+                            // Si prefieres solo el nombre del cargo:
+                            // 'cargoNombre' => $usuarioAsignado->getCargoUser()->getNombre(),
+                            'respondida'   => $usuarioAsignado->getRespondida()
+                        ];
+                        //echo json_encode($data, JSON_PRETTY_PRINT); // puedes enviar esto como respuesta JSON
+                    }
+
+               $Par_Uusario_Mismo_Cargo = $cargosDuplicados;
+               $Par_Uusario_Mismo_Cargo = count($Par_Uusario_Mismo_Cargo) > 0;
+                if($Par_Uusario_Mismo_Cargo ==true){ 
+
+                   $evaluacionDto =new Instrumento360OutPutDto();
+
+                   $evaluacionDto->instrumento360UsuariosAsignados=$datosUsuarios;
+
+
+                    $evaluacionDto->id=$valor->getId();
+                    $evaluacionDto->nombre=$valor->getNombre();
+                    $evaluacionDto->descripcion=$valor->getDescripcion();
+
+                    $evaluacionDto->idTipoUnidad=($valor->getTipoUnidad()!=null)?array("id"=>$valor->getTipoUnidad()->getId(),"Nombre"=>$valor->getTipoUnidad()->getNombre(),"Factor"=>$valor->getTipoUnidad()->getFactor()):[];
+                    $evaluacionDto->unidad=$valor->getTipounidad();
+
+                    $evaluacionDto->tipoInstrumento=($valor->getTipoInstrumento()!=null)?array("id"=>$valor->getTipoInstrumento()->getId(),"Nombre"=>$valor->getTipoInstrumento()->getNombre()):[];
+
+                    //$evaluacionDto->path=$valor->getPath();
+                    //$evaluacionDto->orden=$valor->getOrden();;
+
+                    $evaluacionDto->fechaPublicacion=!is_null($valor->getFechaPublicacion())?$valor->getFechaPublicacion()->format("Y-m-d"):null;
+                    $evaluacionDto->createAt=!is_null($valor->getCreateAt())?$valor->getCreateAt()->format("Y-m-d"):null;
+                    $evaluacionDto->fechaVigencia=$valor->getFechaVigencia()->format("Y-m-d");
+                    $evaluacionDto->publicar=$valor->getPublicar();
+
+                    $evaluacionDto->questionsByCategory=$valor->getQuestionsByCategory();
+                    $evaluacionDto->puntosGlobales=$valor->getPuntosGlobales();
+
+                    $evaluacionDto->editable=1;
+
+                    $entity= $this->getEntityManager()->createQueryBuilder();
+                    
+                    $EvaluacionDataRespondida= $entity->select("a,q")
+                        ->from("App\Entity\Instrumento360\Instrumento360","a")
+                        ->innerJoin('a.instrumento360UsuariosAsignados', 'q')
+                        ->Where('q.respondida=1')
+                        ->andWhere('a.id='.$valor->getId())
+                        ->orderBy('a.id', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+
+                    $EvaluacionDataNoRespondida= $entity->select("b,h")
+                        ->from("App\Entity\Instrumento360\Instrumento360","b")
+                        ->innerJoin('b.instrumento360UsuariosAsignados', 'h')
+                        ->Where('h.respondida=0')
+                        ->andWhere('b.id='.$valor->getId())
+                        ->orderBy('b.id', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+
+                    $sqlUser = " SELECT count(*) as total FROM instrumento360 a INNER JOIN instrumento360_usuarios_asignados b 
+                    ON a.id = b.instrumento360_id WHERE b.respondida = 0 AND a.id = ".$valor->getId()  ;
+                    $conn = $this->getEntityManager()->getConnection();
+                    $stmt = $conn->prepare($sqlUser);
+                    $stmt->execute();
+                    $dataUserCount=$stmt->fetchAll();
+                
+                    if($evaluacionDto->publicar==1){
+                        $evaluacionDto->editable=0;
+                    }
+
+                    if(count($EvaluacionDataRespondida)>0){
+                        $evaluacionDto->editable=0;
+                    }
+
+                    $evaluacionDto->userIfEvaluating=$dataUserCount[0]["total"];
+                    $dataevaluacion[]=$evaluacionDto;
+
+
+                  }
+
+
+
+
+          }
+
+        }
+
+
+
+       return array("count"=>count($paginatorTotalCount),"data"=>$dataevaluacion);
+ 
+    }
+
+
+
 
 
 
