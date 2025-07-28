@@ -88,7 +88,10 @@ class Instrumento360UsuariosAsignados
     private $empresa;
 
    
-    
+     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $respondida;
     
 
     public function getId(): ?int
@@ -240,5 +243,16 @@ class Instrumento360UsuariosAsignados
         return $this;
     }
 
+    public function getRespondida(): ?int
+    {
+        return $this->respondida;
+    }
+
+    public function setRespondida(?int $respondida): self
+    {
+        $this->respondida = $respondida;
+
+        return $this;
+    }
 
 }
