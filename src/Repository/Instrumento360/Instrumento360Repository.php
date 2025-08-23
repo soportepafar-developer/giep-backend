@@ -51,7 +51,7 @@ class Instrumento360Repository extends ServiceEntityRepository
             return new JsonResponse(['msg'=>'No existen Registros con el id: '.$id],404);  
         }
         $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
-        $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
+        $entity->setDuracion(!is_null($data["duration"])?$data["duration"]:null);
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
         $entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
         $entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
@@ -84,7 +84,7 @@ class Instrumento360Repository extends ServiceEntityRepository
 
         $entity = new Instrumento360();
         $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
-        $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
+        $entity->setDuracion(!is_null($data["duration"])?$data["duration"]:null);
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
         $entity->setTipoInstrumento(!is_null($data["instrumentType"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["instrumentType"]):null);
 
