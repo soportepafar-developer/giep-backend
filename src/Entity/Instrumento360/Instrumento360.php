@@ -115,12 +115,18 @@ class Instrumento360
      */
     private $puntosGlobales;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Odis::class, mappedBy="instrumento360")
+     */
+    private $odis;
+
 
     public function __construct()
     {
         $this->instrumento360UsuariosAsignados = new ArrayCollection();
         $this->seccions = new ArrayCollection();
         $this->preguntas = new ArrayCollection();
+        $this->odis = new ArrayCollection();
 
 
     }
@@ -376,6 +382,34 @@ class Instrumento360
         return $this;
     }
 
-    
+    /**
+     * @return Collection|Odis[]
+     */
+    public function getOdis(): Collection
+    {
+        return $this->odis;
+    }
+
+    public function addOdi(Odis $odi): self
+    {
+        if (!$this->odis->contains($odi)) {
+            $this->odis[] = $odi;
+            $odi->setInstrumento360($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOdi(Odis $odi): self
+    {
+        if ($this->odis->removeElement($odi)) {
+            // set the owning side to null (unless already changed)
+            if ($odi->getInstrumento360() === $this) {
+                $odi->setInstrumento360(null);
+            }
+        }
+
+        return $this;
+    }
 
 }
