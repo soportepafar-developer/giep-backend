@@ -37,6 +37,7 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
         parent::__construct($registry, PreguntaEvaluacion360::class);
     }
 
+    
 
     public function findByIdEncuestaAndSeccion($id, $idseccion)
     {
