@@ -51,13 +51,13 @@ class Instrumento360UsuariosAsignadosController extends AbstractController
      *         description="Error de validación"
      *     )
      * )
-     * @Route("/api/instrumento360/usuarios-asignados", methods={"POST"})
+     * @Route("/api/instrumento360/asignar/usuarios", methods={"POST"})
      */
     public function create(Request $request, ValidatorInterface $validator, Helper $helper): JsonResponse
     {
         //try {
             $data = json_decode($request->getContent(), true);
-            return $this->usuariosAsignadosRepository->post($data, $validator, $helper);
+            return $this->usuariosAsignadosRepository->asignarUsuarioAInstrumento($data, $validator, $helper);
         //} catch (\Exception $e) {
             return new JsonResponse(['msg' => 'Error del Servidor'], 500);
         //}
@@ -167,5 +167,41 @@ class Instrumento360UsuariosAsignadosController extends AbstractController
     public function findById($id): JsonResponse
     {
         return $this->usuariosAsignadosRepository->findById($id);
+    }
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/instrumento360/usuarios-asignados",
+     *     summary="Crear una nueva asignación de usuario de la lista de elegibles",
+     *     operationId="usuariosAsignados360Createseleccion",
+     *     tags={"Instrumento360 Usuarios Asignados"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="user_id", type="integer"),
+     *             @OA\Property(property="instrumento_id", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Asignación creada exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error de validación"
+     *     )
+     * )
+     * @Route("/api/instrumento360/usuarios-asignados", methods={"POST"})
+     */
+    public function asignarUsuarioInstrumento360(
+        Request $request,
+        Instrumento360UsuariosAsignadosRepository $repo,
+        ValidatorInterface $validator,
+        Helper $helper
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        return $repo->asignarUsuarioAInstrumento($data, $validator, $helper);
     }
 } 

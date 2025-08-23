@@ -35,6 +35,56 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
         parent::__construct($registry, Instrumento360UsuariosAsignados::class);
     }
 
+
+        public function asignarUsuarioAInstrumento($data, $validator, $helper): JsonResponse
+        {
+            $entityManager = $this->getEntityManager();
+
+            // Buscar usuario
+            $user = $entityManager->getRepository(User::class)->find($data["userId"]);
+            if (!$user) {
+                return new JsonResponse(['msg' => 'No existe el usuario: ' . $userId], 404);
+            }
+
+            // Buscar instrumento
+            $instrumento = $entityManager->getRepository(Instrumento360::class)->find($data["userId"]);
+            if (!$instrumento) {
+                return new JsonResponse(['msg' => 'No existe el instrumento: ' . $instrumento->getId()], 404);
+            }
+
+            // Buscar unidad organizativa del usuario (ajusta el método según tu entidad User)
+            $unidadUser = method_exists($user, 'getUnidadOrganizativa') ? $user->getUnidadOrganizativa() : null;
+            if (!$unidadUser) {
+                return new JsonResponse(['msg' => 'El usuario no tiene unidad organizativa asignada'], 400);
+            }
+
+            $entity = new Instrumento360UsuariosAsignados();
+            $entity->setUser($user);
+            $entity->setUnidadUser($unidadUser);
+            $entity->setInstrumento360($instrumento);
+            $entity->setCreateAt(new \DateTime());
+            $entity->setCreateBy($this->security->getUser()->getUserName());
+            $empresa = $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+            if ($empresa) {
+                $entity->setEmpresa($empresa);
+            }
+
+            $errors = $validator->validate($entity);
+            if($errors->count() > 0) {
+                $errorsString = (string) $errors;
+                return new JsonResponse(['msg' => $errorsString], 500);
+            }
+
+            $entityManager->persist($entity);
+            $entityManager->flush();
+
+            return new JsonResponse([
+                'msg' => 'Registro Creado',
+                'id' => $entity->getId()
+            ], 200);
+        }
+
+
     public function post($data, $validator, $helper): JsonResponse
     {
         $entityManager = $this->getEntityManager();
