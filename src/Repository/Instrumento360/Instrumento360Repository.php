@@ -1247,6 +1247,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                     ->setParameter('estructuraId', $estructuraId)
                     ->orderBy('c.nivel', 'ASC');
 
+                    $contSinResp=0;
                     $usuariosFiltrados = $qb->getQuery()->getResult();
                      $datosUsuarios = [];
                    foreach ($usuariosFiltrados as $usuarioAsignado) {
@@ -1257,17 +1258,33 @@ class Instrumento360Repository extends ServiceEntityRepository
                         $stmt->execute();
                        $dataUserRespondida=$stmt->fetchAll();
                        $resp=0;
+                       /* if (!empty($dataUserRespondida)) {
+                            $resp = $dataUserRespondida[0]["respondida"];
+                       }else{
+                        $contSinResp++;
+                       } */
+
+                       
                        if (!empty($dataUserRespondida)) {
                             $resp = $dataUserRespondida[0]["respondida"];
                        }
                        $rolesArray = json_decode($usuarioAsignado['roles'], true);
+
+                       /* $usersData[]=array("id"=>$instrumentosuser->getUserEvaluador()->getId(),
+                       "nombre"=>$instrumentosuser->getUserEvaluador()->getPrimerNombre(). " ".$instrumentosuser->getUserEvaluador()->getPrimerApellido()
+                       ,"email"=>$instrumentosuser->getUserEvaluador()->getEmail()
+                        ,"respondida"=>$instrumentosuser->getRespondida(),"roles"=>$instrumentosuser->getUserEvaluador()->getRoles());                        */
+
                        $datosUsuarios[] = [
                             'usuarioId'    => $usuarioAsignado['id_user'],
+                            "nombre"=> $usuarioAsignado['primerNombre']. " ". $usuarioAsignado['primerApellido'],
+                            "email" => $usuarioAsignado['username'],
                             'cargoId'      => $usuarioAsignado['idcargo'],
                             'cargoNombre'      => $usuarioAsignado['cargo'],
                             'respondida'   => $resp,
                             'roles'   => $rolesArray
                         ];
+
                     } 
 
                   //Pares
@@ -1337,11 +1354,20 @@ class Instrumento360Repository extends ServiceEntityRepository
                        $rolesArray = json_decode($usuarioAsignado['roles'], true);
                        $datosUsuarios[] = [
                             'usuarioId'    => $usuarioAsignado['id_user'],
+                            "nombre"=> $usuarioAsignado['primerNombre']. " ". $usuarioAsignado['primerApellido'],
+                            "email" => $usuarioAsignado['username'],
                             'cargoId'      => $usuarioAsignado['idcargo'],
                             'cargoNombre'      => $usuarioAsignado['cargo'],
                             'respondida'   => $resp,
                             'roles'   => $rolesArray
                         ];
+                       /* $datosUsuarios[] = [
+                            'usuarioId'    => $usuarioAsignado['id_user'],
+                            'cargoId'      => $usuarioAsignado['idcargo'],
+                            'cargoNombre'      => $usuarioAsignado['cargo'],
+                            'respondida'   => $resp,
+                            'roles'   => $rolesArray
+                        ]; */
                     }   
 
                   }
@@ -1365,11 +1391,20 @@ class Instrumento360Repository extends ServiceEntityRepository
                        $rolesArray = json_decode($usuarioAsignado['roles'], true);
                        $datosUsuarios[] = [
                             'usuarioId'    => $usuarioAsignado['id_user'],
+                            "nombre"=> $usuarioAsignado['primerNombre']. " ". $usuarioAsignado['primerApellido'],
+                            "email" => $usuarioAsignado['username'],
                             'cargoId'      => $usuarioAsignado['idcargo'],
                             'cargoNombre'      => $usuarioAsignado['cargo'],
                             'respondida'   => $resp,
                             'roles'   => $rolesArray
                         ];
+                       /* $datosUsuarios[] = [
+                            'usuarioId'    => $usuarioAsignado['id_user'],
+                            'cargoId'      => $usuarioAsignado['idcargo'],
+                            'cargoNombre'      => $usuarioAsignado['cargo'],
+                            'respondida'   => $resp,
+                            'roles'   => $rolesArray
+                        ]; */
                     }
                 } 
 
