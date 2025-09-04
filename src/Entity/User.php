@@ -239,6 +239,12 @@ class User implements UserInterface
      */
     private $idempresa;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=EstructuraOrganizativa::class)
+     * @ORM\JoinColumn(name="idestructura", referencedColumnName="id")
+     */
+    private $idestructura;
+
     public function __construct()
     {
         $this->telefonos = new ArrayCollection();
@@ -945,6 +951,18 @@ class User implements UserInterface
     public function setIdempresa(?Empresa $idempresa): self
     {
         $this->idempresa = $idempresa;
+
+        return $this;
+    }
+
+    public function getIdestructura(): ?EstructuraOrganizativa
+    {
+        return $this->idestructura;
+    }
+
+    public function setIdestructura(?EstructuraOrganizativa $idestructura): self
+    {
+        $this->idestructura = $idestructura;
 
         return $this;
     }

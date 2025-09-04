@@ -36,7 +36,7 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
     }
 
 
-        public function asignarUsuarioAInstrumento($data, $validator, $helper): JsonResponse
+    public function asignarUsuarioAInstrumento($data, $validator, $helper): JsonResponse
         {
             $entityManager = $this->getEntityManager();
 
@@ -64,6 +64,15 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
             $entity->setUser($user);
            // $entity->setUnidadUser($unidadUser);
             $entity->setUnidadUser($unidadUser);
+            $entity->setRespondida(0);
+            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+            $entity->setUnidadEvaluador($currentUser->getIdestructura());
+            $entity->setCargoEvaluador($currentUser->getIdCargo());
+
+            $currentUser =$entityManager->getRepository(User::class)->find($data["userId"]);
+            $entity->setUnidadUser($currentUser->getIdestructura());
+            $entity->setCargoUser($currentUser->getIdCargo());
+
             $entity->setInstrumento360($instrumento);
             $entity->setUserEvaluador($currentUser);
             $entity->setCreateAt(new \DateTime());
@@ -87,6 +96,8 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
                 'id' => $entity->getId()
             ], 200);
         }
+
+     
 
 
     public function post($data, $validator, $helper): JsonResponse

@@ -420,4 +420,41 @@ class Instrumento360Controller extends AbstractController
          return new JsonResponse($data,200);  
     }
 
+    /**
+        *  Get Instrumento360 by Id.
+        * @Route("/api/instrumento360evaluacion/{id}", methods={"GET"})
+        * @OA\Post(
+         * summary="Instrumento360 List",
+         * description="Instrumento360 List",
+         * operationId="Instrumento360list",
+         * tags={"Instrumento360"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="parametro",
+         *    @OA\JsonContent(
+         *       required={"page"},
+         *       @OA\Property(property="page", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="rowByPage", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="word", type="integer", format="integer", example="1"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+         * @OA\Tag(name="Instrumento360")
+         * @Security(name="Bearer")
+    */   
+    public function findById1($id,Request $request,Instrumento360Repository $repository): JsonResponse
+    {
+        $data = $repository
+        ->findById1($id);
+         return $data;  
+    }
+
+
 } 
