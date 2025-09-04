@@ -37,13 +37,8 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
         parent::__construct($registry, PreguntaEvaluacion360::class);
     }
 
-    
-
     public function findByIdEncuestaAndSeccion($id, $idseccion)
     {
-        
-
-
         $entity = $this->getEntityManager()->createQueryBuilder();
         $data = $entity->select("p,q,r")
             ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
@@ -53,6 +48,153 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             ->andWhere("r.id='" . $idseccion . "'")
             ->getQuery()
             ->getResult();
+
+/*         $entity = $this->getEntityManager()->createQueryBuilder();
+        $data = $entity->select("p,q,r")
+            ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
+            ->innerJoin('p.idInstrumento', 'q')
+            ->innerJoin('p.seccion', 'r')
+            ->where($entity->expr()->in('p.id', ':idpregunta')) // 👈 aquí el cambio
+            ->setParameter('idpregunta', $idpregunta)
+            ->getQuery()
+            ->getResult(); */
+
+        $dataPregunta = [];
+        $opciones = [];
+        foreach ($data as $clave => $valor) {
+            $preguntaDto = new PreguntaEvaluacion360Dto();
+            $preguntaDto->id = $valor->getId();
+            $preguntaDto->pregunta = $valor->getPregunta();
+            $preguntaDto->class = $valor->getClass();
+            $preguntaDto->obligatorio = $valor->getObligatorio();
+            $preguntaDto->orden = $valor->getOrden();
+            $preguntaDto->idInput = ($valor->getIdInput() != null) ? array("id" => $valor->getIdInput()->getId(), "Descripcion" => $valor->getIdInput()->getNombre()) : [];
+            $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array("id" => $valor->getIdCategoria()->getId(), "Descripcion" => $valor->getIdCategoria()->getNombre()) : null;
+            $preguntaDto->puntos = $valor->getPuntos();
+            $preguntaDto->idInstrumento = ($valor->getIdInstrumento() != null) ? array("id" => $valor->getIdInstrumento()->getId(), "Descripcion" => $valor->getIdInstrumento()->getNombre()) : [];
+            $opciones = [];
+            foreach ($valor->getOpciones() as $claveOpciones => $valorOpciones) {
+
+                $opciones[] = array(
+                    "id" => $valorOpciones->getId(),
+                    "Name" => $valorOpciones->getNombre(),
+                    "Puntos" => $valorOpciones->getPuntos(),
+                    "Valor" => $valorOpciones->getValor(),
+                    "Correcto" => $valorOpciones->getCorrecta(),
+                    "scoreByCharge" => $this->getOpcionesCargo($valorOpciones)
+                );
+            }
+            $preguntaDto->opciones = $opciones;
+            if ($valor->getCreateAt() != null) {
+                $preguntaDto->createAt = $valor->getCreateAt()->format("d/m/Y");
+            }
+            $preguntaDto->updateBy = $valor->getUpdateBy();
+            if ($valor->getUpdateAt() != null) {
+                $preguntaDto->updateAt = $valor->getUpdateAt()->format("d/m/Y");
+            }
+            $preguntaDto->createBy = $valor->getCreateBy();
+            $dataPregunta[] = $preguntaDto;
+        }
+        return $dataPregunta;
+    }
+
+    public function findByIdEncuestaAndSeccionT($id, $idseccion,$idpregunta)
+    {
+        /* $entity = $this->getEntityManager()->createQueryBuilder();
+        $data = $entity->select("p,q,r")
+            ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
+            ->innerJoin('p.idInstrumento', 'q')
+            ->innerJoin('p.seccion', 'r')
+            ->where("q.id ='" . $id . "'")
+            ->andWhere("r.id='" . $idseccion . "'")
+            ->getQuery()
+            ->getResult(); */
+
+        $entity = $this->getEntityManager()->createQueryBuilder();
+        $data = $entity->select("p,q,r")
+            ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
+            ->innerJoin('p.idInstrumento', 'q')
+            ->innerJoin('p.seccion', 'r')
+            ->where($entity->expr()->in('p.id', ':idpregunta')) // 👈 aquí el cambio
+            ->setParameter('idpregunta', $idpregunta)
+            ->getQuery()
+            ->getResult();
+
+        $dataPregunta = [];
+        $opciones = [];
+        foreach ($data as $clave => $valor) {
+            $preguntaDto = new PreguntaEvaluacion360Dto();
+            $preguntaDto->id = $valor->getId();
+            $preguntaDto->pregunta = $valor->getPregunta();
+            $preguntaDto->class = $valor->getClass();
+            $preguntaDto->obligatorio = $valor->getObligatorio();
+            $preguntaDto->orden = $valor->getOrden();
+            $preguntaDto->idInput = ($valor->getIdInput() != null) ? array("id" => $valor->getIdInput()->getId(), "Descripcion" => $valor->getIdInput()->getNombre()) : [];
+            $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array("id" => $valor->getIdCategoria()->getId(), "Descripcion" => $valor->getIdCategoria()->getNombre()) : null;
+            $preguntaDto->puntos = $valor->getPuntos();
+            $preguntaDto->idInstrumento = ($valor->getIdInstrumento() != null) ? array("id" => $valor->getIdInstrumento()->getId(), "Descripcion" => $valor->getIdInstrumento()->getNombre()) : [];
+            $opciones = [];
+            foreach ($valor->getOpciones() as $claveOpciones => $valorOpciones) {
+
+                $opciones[] = array(
+                    "id" => $valorOpciones->getId(),
+                    "Name" => $valorOpciones->getNombre(),
+                    "Puntos" => $valorOpciones->getPuntos(),
+                    "Valor" => $valorOpciones->getValor(),
+                    "Correcto" => $valorOpciones->getCorrecta(),
+                    "scoreByCharge" => $this->getOpcionesCargo($valorOpciones)
+                );
+            }
+            $preguntaDto->opciones = $opciones;
+            if ($valor->getCreateAt() != null) {
+                $preguntaDto->createAt = $valor->getCreateAt()->format("d/m/Y");
+            }
+            $preguntaDto->updateBy = $valor->getUpdateBy();
+            if ($valor->getUpdateAt() != null) {
+                $preguntaDto->updateAt = $valor->getUpdateAt()->format("d/m/Y");
+            }
+            $preguntaDto->createBy = $valor->getCreateBy();
+            $dataPregunta[] = $preguntaDto;
+        }
+        return $dataPregunta;
+    }
+
+    public function findByIdEncuestaAndSeccionCardinal($id, $idseccion,$idpregunta)
+    {
+      /*  $entity = $this->getEntityManager()->createQueryBuilder();
+         $data = $entity->select("p,q,r")
+            ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
+            ->innerJoin('p.idInstrumento', 'q')
+            ->innerJoin('p.seccion', 'r')
+            ->where("q.id ='" . $id . "'")
+            ->andWhere("r.id='" . $idseccion . "'")
+            ->getQuery()
+            ->getResult(); */
+
+//->where("p.id ='" . $idpregunta . "'")
+        //$idpregunta = [958,959,960,961];
+        $entity = $this->getEntityManager()->createQueryBuilder();
+
+        $data = $entity->select("p,q,r")
+            ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
+            ->innerJoin('p.idInstrumento', 'q')
+            ->innerJoin('p.seccion', 'r')
+            ->where($entity->expr()->in('p.id', ':idpregunta')) // 👈 aquí el cambio
+            ->setParameter('idpregunta', $idpregunta)
+            ->getQuery()
+            ->getResult();
+   
+
+       
+         /* $entity = $this->getEntityManager()->createQueryBuilder();
+        $data = $entity->select("p,q,r")
+            ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
+            ->innerJoin('p.idInstrumento', 'q')
+            ->innerJoin('p.seccion', 'r')
+            ->Where($data->expr()->in('p.id', ':idpregunta')) // 👈 AQUÍ el cambio importante
+            ->setParameter('idpregunta', $idpregunta)
+            ->getQuery()
+            ->getResult();  */
 
         $dataPregunta = [];
         $opciones = [];

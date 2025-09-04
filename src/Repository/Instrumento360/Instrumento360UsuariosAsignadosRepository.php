@@ -36,7 +36,7 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
     }
 
 
-        public function asignarUsuarioAInstrumento($data, $validator, $helper): JsonResponse
+    public function asignarUsuarioAInstrumento($data, $validator, $helper): JsonResponse
         {
             $entityManager = $this->getEntityManager();
 
@@ -47,21 +47,34 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
             }
 
             // Buscar instrumento
-            $instrumento = $entityManager->getRepository(Instrumento360::class)->find($data["userId"]);
+            $instrumento = $entityManager->getRepository(Instrumento360::class)->find($data["instrumentoId"]);
             if (!$instrumento) {
-                return new JsonResponse(['msg' => 'No existe el instrumento: ' . $instrumento->getId()], 404);
+                return new JsonResponse(['msg' => 'No existe el instrumento: ' . $instrumento], 404);
             }
 
             // Buscar unidad organizativa del usuario (ajusta el método según tu entidad User)
             $unidadUser = method_exists($user, 'getUnidadOrganizativa') ? $user->getUnidadOrganizativa() : null;
-            if (!$unidadUser) {
-                return new JsonResponse(['msg' => 'El usuario no tiene unidad organizativa asignada'], 400);
-            }
+            // if (!$unidadUser) {
+            //     return new JsonResponse(['msg' => 'El usuario no tiene unidad organizativa asignada'], 400);
+            // }
+            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+
 
             $entity = new Instrumento360UsuariosAsignados();
             $entity->setUser($user);
+           // $entity->setUnidadUser($unidadUser);
             $entity->setUnidadUser($unidadUser);
+            $entity->setRespondida(0);
+            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+            $entity->setUnidadEvaluador($currentUser->getIdestructura());
+            $entity->setCargoEvaluador($currentUser->getIdCargo());
+
+            $currentUser =$entityManager->getRepository(User::class)->find($data["userId"]);
+            $entity->setUnidadUser($currentUser->getIdestructura());
+            $entity->setCargoUser($currentUser->getIdCargo());
+
             $entity->setInstrumento360($instrumento);
+            $entity->setUserEvaluador($currentUser);
             $entity->setCreateAt(new \DateTime());
             $entity->setCreateBy($this->security->getUser()->getUserName());
             $empresa = $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
@@ -83,6 +96,8 @@ class Instrumento360UsuariosAsignadosRepository extends ServiceEntityRepository
                 'id' => $entity->getId()
             ], 200);
         }
+
+     
 
 
     public function post($data, $validator, $helper): JsonResponse
