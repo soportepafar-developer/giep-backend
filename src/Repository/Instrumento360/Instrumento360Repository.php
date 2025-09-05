@@ -2016,28 +2016,7 @@ class Instrumento360Repository extends ServiceEntityRepository
                     
                     // Clonar la competencia si existe y no ha sido clonada antes
                     if ($pregunta->getIdCategoria()) {
-                        $competenciaOriginal = $pregunta->getIdCategoria();
-                        if (!isset($competenciaMap[$competenciaOriginal->getId()])) {
-                            $newCompetencia = clone $competenciaOriginal;
-                            $em->persist($newCompetencia);
-                            
-                            // Clonar competenciasCargoEscalas
-                            foreach ($competenciaOriginal->getCompetenciaCargoEscala() as $cargoEscala) {
-                                $newCargoEscala = clone $cargoEscala;
-                                $newCargoEscala->setCompetencia($newCompetencia);
-                                $em->persist($newCargoEscala);
-                            }
-                            
-                            // Clonar competenciasNivelPonderacion
-                            foreach ($competenciaOriginal->getCompetenciasNivelPonderacion() as $nivelPonderacion) {
-                                $newNivelPonderacion = clone $nivelPonderacion;
-                                $newNivelPonderacion->setCompetencia($newCompetencia);
-                                $em->persist($newNivelPonderacion);
-                            }
-                            
-                            $competenciaMap[$competenciaOriginal->getId()] = $newCompetencia;
-                        }
-                        $newPregunta->setIdCategoria($competenciaMap[$competenciaOriginal->getId()]);
+                        $newPregunta->setIdCategoria($pregunta->getIdCategoria());
                     }
                     
                     $em->persist($newPregunta);
