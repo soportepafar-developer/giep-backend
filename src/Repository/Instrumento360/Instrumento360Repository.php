@@ -51,7 +51,7 @@ class Instrumento360Repository extends ServiceEntityRepository
             return new JsonResponse(['msg'=>'No existen Registros con el id: '.$id],404);  
         }
         $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
-        $entity->setDuracion(!is_null($data["duration"])?$data["duration"]:null);
+        $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
         $entity->setQuestionsByCategory(!is_null($data["questionsByCategory"])?$data["questionsByCategory"]:null);
         $entity->setPuntosGlobales(!is_null($data["puntosGlobales"])?$data["puntosGlobales"]:null);
@@ -84,7 +84,7 @@ class Instrumento360Repository extends ServiceEntityRepository
 
         $entity = new Instrumento360();
         $entity->setNombre(!is_null($data["name"])?$data["name"]:null);
-        $entity->setDuracion(!is_null($data["duration"])?$data["duration"]:null);
+        $entity->setDuracion(!is_null($data["dutation"])?$data["dutation"]:null);
         $entity->setTipounidad(!is_null($data["unitType"])?$entityManager->getRepository(TipoUnidad::class)->find($data["unitType"]["id"]):null);
         $entity->setTipoInstrumento(!is_null($data["instrumentType"])?$entityManager->getRepository(TipoInstrumento360::class)->find($data["instrumentType"]):null);
 
@@ -1103,11 +1103,11 @@ class Instrumento360Repository extends ServiceEntityRepository
                         ->from('App\Entity\User', 'u')
                         ->innerJoin('u.idCargo', 'c')
                         ->innerJoin('u.idestructura', 'e')
-                        ->where('c.nivel = :nivel')
-                        ->andWhere('e.id = :estructuraId')
+                        //->where('c.nivel = :nivel')
+                        ->Where('e.id = :estructuraId')
                         ->andWhere($qb->expr()->in('c.id', ':cargoIds')) // 👈 AQUÍ el cambio importante
                         ->andWhere('u.id != :userRef')
-                        ->setParameter('nivel', $nivelId)
+                        //->setParameter('nivel', $nivelId)
                         ->setParameter('estructuraId', $estructuraId)
                         ->setParameter('cargoIds', $cargoIds)
                         ->setParameter('userRef', $this->security->getUser()->getId())
@@ -1331,15 +1331,20 @@ class Instrumento360Repository extends ServiceEntityRepository
                         ->from('App\Entity\User', 'u')
                         ->innerJoin('u.idCargo', 'c')
                         ->innerJoin('u.idestructura', 'e')
-                        ->where('c.nivel = :nivel')
+                        //->where('c.nivel = :nivel')
                         ->andWhere('e.id = :estructuraId')
                         ->andWhere($qb->expr()->in('c.id', ':cargoIds')) // 👈 AQUÍ el cambio importante
                         ->andWhere('u.id != :userRef')
-                        ->setParameter('nivel', $nivelId)
+                        //->setParameter('nivel', $nivelId)
                         ->setParameter('estructuraId', $estructuraId)
                         ->setParameter('cargoIds', $cargoIds)
                         ->setParameter('userRef', $this->security->getUser()->getId())
                         ->orderBy('c.nivel', 'ASC');
+
+                        $resultado = $qb->getQuery()->getResult();
+                        //dd($resultado);
+
+                         $ver = 1222;
 
                   //Autoevaluacion
                   }elseif($valor->getTipoInstrumento()->getId() ==2){       
@@ -1524,11 +1529,11 @@ class Instrumento360Repository extends ServiceEntityRepository
                         ->from('App\Entity\User', 'u')
                         ->innerJoin('u.idCargo', 'c')
                         ->innerJoin('u.idestructura', 'e')
-                        ->where('c.nivel = :nivel')
+                        //->where('c.nivel = :nivel')
                         ->andWhere('e.id = :estructuraId')
                         ->andWhere($qb->expr()->in('c.id', ':cargoIds')) // 👈 AQUÍ el cambio importante
                         ->andWhere('u.id != :userRef')
-                        ->setParameter('nivel', $nivelId)
+                        //->setParameter('nivel', $nivelId)
                         ->setParameter('estructuraId', $estructuraId)
                         ->setParameter('cargoIds', $cargoId)
                         ->setParameter('userRef', $this->security->getUser()->getId())
