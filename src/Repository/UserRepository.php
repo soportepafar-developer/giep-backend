@@ -1254,7 +1254,8 @@ class UserRepository extends ServiceEntityRepository
     public function findEstructura($data,$url){
         $entityManager = $this->getEntityManager();
          //where a.presidencia='Presidencia'
-        $sql = " SELECT a.* FROM `actualizar_usuariosf1` a 
+        //$sql = " SELECT a.* FROM `actualizar_usuariosf1` a 
+        $sql = " SELECT a.* FROM `actualizar_usuariosf` a 
         order by id asc ";
 
         $conn = $this->getEntityManager()->getConnection();
@@ -1269,7 +1270,7 @@ class UserRepository extends ServiceEntityRepository
         foreach($result as $claveResult=>$valorResult){
             $id= $valorResult["id"];
             $cedula= $valorResult["cedula"];
-            $presidenciavp= $valorResult["presidencia"];
+            $presidenciavp= ltrim($valorResult["presidencia"]);
 
             $sqluser = " SELECT u.* FROM `user` u 
              where u.numero_documento='".$cedula."';";
@@ -1278,6 +1279,10 @@ class UserRepository extends ServiceEntityRepository
             $stmtuser->execute();
             $resultuser= $stmtuser->fetchAll();
             if ($resultuser) {
+
+                 /* if ($cedula== 11667690){
+                    $es=1;
+                } */
 
             $sql2 = " SELECT e.* FROM `estructura_organizativa` e 
              where e.estructura_organizativa='".$presidenciavp."';";
@@ -1288,6 +1293,10 @@ class UserRepository extends ServiceEntityRepository
             if ($result1) {
 
                 $nivelactual = $result1[0]["id"];
+
+                /* if ($cedula== 11667690){
+                    $es=1;
+                } */
 
                 if ($valorResult["gerenciageneral"]!="No reporta a Gerencia General") {
                     $idvp= $result1[0]["id"];
@@ -1321,19 +1330,25 @@ class UserRepository extends ServiceEntityRepository
                 $stmt3 = $conn3->prepare($sql3);
                 $stmt3->execute(); 
 
-                $sqlexist = "update actualizar_usuariosf1 set swexiste=1 where cedula=".$cedula."";
+                $sqlexist = "update actualizar_usuariosf set swexiste=1 where cedula=".$cedula."";
                 $connexist = $this->getEntityManager()->getConnection();
                 $stmtexist = $connexist->prepare($sqlexist);
                 $stmtexist->execute();
 
             }else{
-                //si no existe el usuario
-                $sqlexist = "update actualizar_usuariosf1 set swexiste=0 where cedula=".$cedula."";
+                //si no existe el usuario estructura organizativa
+                $sqlexist = "update actualizar_usuariosf set swexiste=0, estructura_organizativa='".$presidenciavp."'   where cedula=".$cedula."";
                 $connexist = $this->getEntityManager()->getConnection();
                 $stmtexist = $connexist->prepare($sqlexist);
                 $stmtexist->execute();
                 
             }
+        }else{
+            //no existe el usuario    
+            $sqlexist = "update actualizar_usuariosf set swexisteusuario=1 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
 
         }
 
@@ -1417,8 +1432,38 @@ class UserRepository extends ServiceEntityRepository
         if ($result1) {
             return $result1[0]["id"];
         }else{
+            //return 0;
+        }
+
+
+        $sql2 = " SELECT e.* FROM `estructura_organizativa` e 
+        where  e.estructura_organizativa='".$buscanivel."' ;";
+        $conn2 = $this->getEntityManager()->getConnection();
+        $stmt2 = $conn1->prepare($sql2);
+        $stmt2->execute();
+        $result2= $stmt2->fetchAll();
+        if ($result2) {
+
+            $ver = $result2[0]["padre_id"];
+            if (isset($result2[0]["padre_id"]) && !empty($result2[0]["padre_id"])) {
+                // Hay información válida en padre_id
+                return $result2[0]["padre_id"];    
+            } else {
+                // No hay información o está vacío
+               return $result2[0]["id"];
+            }
+
+            //return $result2[0]["id"];
+
+        }else{
             return 0;
         }
+        
+
+
+
+
+
 
     }
 
