@@ -1255,8 +1255,12 @@ class UserRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
          //where a.presidencia='Presidencia'
         //$sql = " SELECT a.* FROM `actualizar_usuariosf1` a 
+
         $sql = " SELECT a.* FROM `actualizar_usuariosf` a 
-        order by id asc ";
+        order by id asc "; 
+
+        /* $sql = " SELECT a.* FROM `actualizar_usuariosf` a where cedula=16819323
+        order by id asc ";   */
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
@@ -1432,11 +1436,11 @@ class UserRepository extends ServiceEntityRepository
         if ($result1) {
             return $result1[0]["id"];
         }else{
-            //return 0;
+            return 0;
         }
 
 
-        $sql2 = " SELECT e.* FROM `estructura_organizativa` e 
+        /* $sql2 = " SELECT e.* FROM `estructura_organizativa` e 
         where  e.estructura_organizativa='".$buscanivel."' ;";
         $conn2 = $this->getEntityManager()->getConnection();
         $stmt2 = $conn1->prepare($sql2);
@@ -1447,7 +1451,9 @@ class UserRepository extends ServiceEntityRepository
             $ver = $result2[0]["padre_id"];
             if (isset($result2[0]["padre_id"]) && !empty($result2[0]["padre_id"])) {
                 // Hay información válida en padre_id
-                return $result2[0]["padre_id"];    
+                //return $result2[0]["padre_id"];    
+
+                return $result2[0]["id"];
             } else {
                 // No hay información o está vacío
                return $result2[0]["id"];
@@ -1457,7 +1463,7 @@ class UserRepository extends ServiceEntityRepository
 
         }else{
             return 0;
-        }
+        } */
         
 
 
