@@ -38,7 +38,7 @@ class Archivosd
     private $tamano;
 
     /**
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="string", length=3000)
      */
     private $nombre_original;
 

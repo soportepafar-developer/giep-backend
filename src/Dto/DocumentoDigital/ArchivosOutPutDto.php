@@ -38,7 +38,7 @@ class ArchivosOutPutDto
     public $tamano;
 
     /**
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="string", length=3000)
      */
     public $nombre_original;
 
