@@ -292,7 +292,8 @@ class ControlArchivoDigitalRepository extends ServiceEntityRepository
             $archivocapturaDto->fecha_extrema_fin=  $valor->getFechaExtremaFin();
 
             //otro endpoint ********************************************************************************
-            $query = $em->createQueryBuilder();
+            //$query = $em->createQueryBuilder();
+            $query = $entityManagerDefault->createQueryBuilder();
             $allAppointmentsQuery = $query->select('estructuraorganizativa')
             ->from(EstructuraOrganizativa::class,'estructuraorganizativa')
             ->where("estructuraorganizativa.id ='".$valor->getIdControlArchivoDigital()->getIdEstructuraOrganizativa()->getPadreId()."'")
@@ -366,6 +367,9 @@ class ControlArchivoDigitalRepository extends ServiceEntityRepository
             $strnombre=$currentUser->getPrimerNombre().' '.$currentUser->getSegundoNombre();
             $strapellido=$currentUser->getPrimerApellido() .' '. $currentUser->getSegundoApellido();
 
+
+            $val = $this->Estructura_Organizativa($valor->getIdControlArchivoDigital()->getIdEstructuraOrganizativa()->getId());
+    
             $archivocapturaDto->id_control_archivo_digital=($valor->getIdControlArchivoDigital()!=null)?array("id"=>$valor->getIdControlArchivoDigital()->getId(),"Asuntos"=>$valor->getIdControlArchivoDigital()->getAsuntos()
             ,"num_expediente"=>$valor->getIdControlArchivoDigital()->getNumExpediente(),"argumento_justificacion"=>$valor->getIdControlArchivoDigital()->getArgumentoJustificacion()
             ,"id_Pais"=>$valor->getIdControlArchivoDigital()->getIdPais(),"Pais"=>$strpais
@@ -373,6 +377,7 @@ class ControlArchivoDigitalRepository extends ServiceEntityRepository
             "id_ciudad"=>$valor->getIdControlArchivoDigital()->getIdCiudad(),"Ciudad"=>$strciudad
             ,"fecha_fin_conservac"=>$valor->getIdControlArchivoDigital()->getFechaFinConservac(),"sw_archivo_fisico"=>$valor->getIdControlArchivoDigital()->getSwArchivoFisico(),"fecha_documento"=>$valor->getIdControlArchivoDigital()->getFechaDocumento()
 
+            ,"niveles"=>$val
 
             ,"id_region"=>$valor->getIdControlArchivoDigital()->getIdregion(),"region"=>$strregion
             ,"id_serie"=>$valor->getIdControlArchivoDigital()->getCodigoSerieSubserie()->getIdSerie()->getId(),"serie"=>$valor->getIdControlArchivoDigital()->getCodigoSerieSubserie()->getIdSerie()->getNombre()
@@ -394,6 +399,7 @@ class ControlArchivoDigitalRepository extends ServiceEntityRepository
                 ,"id_Estado"=>$valor->getIdControlArchivoDigital()->getIdEstado(),"Estado"=>$strestadopais,
                 "id_ciudad"=>$valor->getIdControlArchivoDigital()->getIdCiudad(),"Ciudad"=>$strciudad
                 ,"fecha_fin_conservac"=>$valor->getIdControlArchivoDigital()->getFechaFinConservac(),"sw_archivo_fisico"=>$valor->getIdControlArchivoDigital()->getSwArchivoFisico(),"fecha_documento"=>$valor->getIdControlArchivoDigital()->getFechaDocumento()
+                ,"niveles"=>$val
                 ,"id_tipo_almacen"=>$valor->getIdControlArchivoDigital()->getIdTipoAlmacen()->getId(),"nombre_almacen"=>$valor->getIdControlArchivoDigital()->getIdTipoAlmacen()->getNombrealmacen()
                 ,"id_ubicacion_1"=>$valor->getIdControlArchivoDigital()->getIdubica1()->getId(),"ubicacion_1"=>$valor->getIdControlArchivoDigital()->getIdubica1()->getDescripcion()
                 ,"id_ubicacion_2"=>$valor->getIdControlArchivoDigital()->getIdubica2()->getId(),"ubicacion_2"=>$valor->getIdControlArchivoDigital()->getIdubica2()->getDescripcion()
@@ -418,7 +424,7 @@ class ControlArchivoDigitalRepository extends ServiceEntityRepository
             "id_ciudad"=>$valor->getIdControlArchivoDigital()->getIdCiudad(),"Ciudad"=>$strciudad
             ,"fecha_fin_conservac"=>$valor->getIdControlArchivoDigital()->getFechaFinConservac(),"sw_archivo_fisico"=>$valor->getIdControlArchivoDigital()->getSwArchivoFisico(),"fecha_documento"=>$valor->getIdControlArchivoDigital()->getFechaDocumento()
 
-
+            ,"niveles"=>$val
             ,"id_tipo_almacen"=>null,"nombre_almacen"=>null
             ,"id_ubicacion_1"=>null,"ubicacion_1"=>null
             ,"id_ubicacion_2"=>null,"ubicacion_2"=>null
@@ -448,6 +454,62 @@ class ControlArchivoDigitalRepository extends ServiceEntityRepository
 
     }
 
+
+    public function Estructura_Organizativa($idestructura){
+    $dataEstructura=[];    
+    $regSalida=false;
+    $entityManager = $this->getEntityManager();
+    $queryresp = $entityManager->createQueryBuilder();
+    $estructuraQuery = $queryresp->select('eo.id, eo.padre_id, eo.estructura_organizativa')
+        ->from(EstructuraOrganizativa::class, 'eo')
+        ->where('eo.id = :id')
+        ->setParameter('id', $idestructura)
+        ->getQuery();
+        $queryrespdata = $queryresp->getQuery();
+        $dataresp =  $queryrespdata->execute();
+        $regUnidad =  $dataresp[0]["padre_id"];
+
+        $dataEstructura[] = array(
+            "id" => $dataresp[0]["id"],
+            "label" => $dataresp[0]["estructura_organizativa"]
+        );
+
+   if (!is_null($dataresp[0]["padre_id"])) {
+
+    do {
+        $queryRecursivo = $entityManager->createQueryBuilder();
+        $estructuraQueryRec = $queryRecursivo->select('eo.id, eo.padre_id, eo.estructura_organizativa')
+        ->from(EstructuraOrganizativa::class, 'eo')
+        ->where('eo.id = :id')
+        ->setParameter('id', $regUnidad)
+        ->getQuery();
+        $queryrecursivodata = $queryRecursivo->getQuery();
+        $datarecursivo =  $queryrecursivodata->execute();
+
+        if (is_null($datarecursivo[0]["padre_id"])) {
+            $dataEstructura[] = array(
+                "id" => $datarecursivo[0]["id"],
+                "label" => $datarecursivo[0]["estructura_organizativa"]
+            );
+            $regSalida=true;
+        }else{
+            $regUnidad =  $datarecursivo[0]["padre_id"];
+            $dataEstructura[] = array(
+                "id" => $datarecursivo[0]["id"],
+                "label" => $datarecursivo[0]["estructura_organizativa"]
+            );
+        }
+        
+
+   } while (!$regSalida);
+}
+   // Ordenar el array de menor a mayor por el campo 'id'
+    usort($dataEstructura, function($a, $b) {
+        return $a['id'] <=> $b['id'];
+    });
+   return $dataEstructura;
+
+}
 
 
     // /**
