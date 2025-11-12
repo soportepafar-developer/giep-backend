@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250603152221 extends AbstractMigration
+final class Version20251105173851 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -20,16 +20,14 @@ final class Version20250603152221 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE sub_sub_serie (id INT AUTO_INCREMENT NOT NULL, id_subserie_id INT NOT NULL, nombre_subsubserie VARCHAR(255) NOT NULL, INDEX IDX_5473B133CAC1F8C3 (id_subserie_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('ALTER TABLE sub_sub_serie ADD CONSTRAINT FK_5473B133CAC1F8C3 FOREIGN KEY (id_subserie_id) REFERENCES sub_serie (id)');
+        $this->addSql('CREATE TABLE document (id INT AUTO_INCREMENT NOT NULL, filename VARCHAR(255) NOT NULL, original_name VARCHAR(255) NOT NULL, file_type VARCHAR(50) NOT NULL, content LONGTEXT DEFAULT NULL, summary LONGTEXT DEFAULT NULL, analysis LONGTEXT DEFAULT NULL COMMENT \'(DC2Type:json)\', uploaded_at DATETIME NOT NULL, file_size INT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
 
     }
 
     public function down(Schema $schema) : void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP TABLE sub_sub_serie');
-        
-        
+        $this->addSql('DROP TABLE document');
+
     }
 }
