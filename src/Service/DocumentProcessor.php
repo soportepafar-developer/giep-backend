@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\Document;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Smalot\PdfParser\Parser;
-use PhpOffice\PhpWord\IOFactory as WordIOFactory;
+use PhpOffice\PhpWord\Reader\Word2007;
 use PhpOffice\PhpSpreadsheet\IOFactory as SpreadsheetIOFactory;
 
 class DocumentProcessor
@@ -32,12 +32,19 @@ class DocumentProcessor
         $file->move($this->uploadsDirectory, $filename);
         $filePath = $this->uploadsDirectory . '/' . $filename;
 
-        $content = $this->extractContent($filePath, $file->getClientMimeType());
-        $document->setContent($content);
+        // Extraer y limpiar contenido
+        $rawContent = $this->extractContent($filePath, $file->getClientMimeType());
+        $cleanContent = $this->sanitizeContent($rawContent);
+        $document->setContent($cleanContent);
 
-        $analysis = $this->deepSeekAnalyzer->analyzeDocument($content, $promptUser);
+        // Análisis
+        $analysis = $this->deepSeekAnalyzer->analyzeDocument($cleanContent, $promptUser);
+
         $document->setSummary($analysis['summary']);
-        $document->setAnalysis($analysis['analysis']);
+
+        $document->setAnalysis(json_encode($analysis['analysis'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+        //$document->setAnalysis($analysis['analysis']);
 
         return $document;
     }
@@ -80,7 +87,8 @@ class DocumentProcessor
 
     private function extractFromDocx(string $filePath): string
     {
-        $phpWord = WordIOFactory::load($filePath);
+        $reader = new Word2007();
+        $phpWord = $reader->load($filePath);
         $content = '';
 
         foreach ($phpWord->getSections() as $section) {
@@ -119,6 +127,15 @@ class DocumentProcessor
             }
         }
 
+        return trim($content);
+    }
+
+    private function sanitizeContent(string $content): string
+    {
+        $content = mb_convert_encoding($content, 'UTF-8', 'auto');
+        $content = preg_replace('/\\\\([a-zA-Z\/])/', '$1', $content);
+        $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = preg_replace('/[\x00-\x1F\x7F]/u', '', $content);
         return trim($content);
     }
 }

@@ -30,14 +30,15 @@ class Document
     private ?string $originalName = null;
 
     /**
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="string", length=255)
      */
     private ?string $fileType = null;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="text", nullable=true, options={"length": 4294967295})
      */
     private ?string $content = null;
+
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -45,9 +46,9 @@ class Document
     private ?string $summary = null;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
-    private array $analysis = [];
+    private ?string $analysis = null;
 
     /**
      * @ORM\Column(type="datetime")
@@ -76,8 +77,10 @@ class Document
     public function setContent(?string $content): self { $this->content = $content; return $this; }
     public function getSummary(): ?string { return $this->summary; }
     public function setSummary(?string $summary): self { $this->summary = $summary; return $this; }
-    public function getAnalysis(): array { return $this->analysis; }
-    public function setAnalysis(?array $analysis): self { $this->analysis = $analysis; return $this; }
+
+    public function getAnalysis(): ?string { return $this->analysis; }
+    public function setAnalysis(?string $analysis): self { $this->analysis = $analysis; return $this; }
+
     public function getUploadedAt(): ?\DateTimeInterface { return $this->uploadedAt; }
     public function setUploadedAt(\DateTimeInterface $uploadedAt): self { $this->uploadedAt = $uploadedAt; return $this; }
     public function getFileSize(): ?int { return $this->fileSize; }

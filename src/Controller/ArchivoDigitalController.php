@@ -141,10 +141,13 @@ class ArchivoDigitalController extends AbstractController
 
             // Procesar el archivo
             $document = $documentProcessor->processUploadedFile($archivo,$promptUser);
-            
             // Guardar en base de datos
-            $entityManager->persist($document);
-            $entityManager->flush();
+            try {
+                $entityManager->persist($document);
+                $entityManager->flush();
+            } catch (\Exception $e) {
+                throw new \Exception('Error al guardar el documento: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            }
 
             // Preparar respuesta
             $responseData = [
