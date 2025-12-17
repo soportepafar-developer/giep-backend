@@ -911,25 +911,75 @@ class Instrumento360Repository extends ServiceEntityRepository
                         ->getQuery()
                         ->getSingleScalarResult();
 
+                    if($cargoId ==2 or $cargoId ==3 or $cargoId ==4 or $cargoId ==5 ){  
+
+                        $todasestructuraId = $this->getEntityManager()->createQueryBuilder()
+                        ->select('e')
+                        ->from('App\Entity\EstructuraOrganizativa', 'e')
+                        ->where('e.padre_id = :Refpadre')
+                        ->andWhere('e.id != :estructuraId')
+                        ->setParameter('Refpadre', $estructuraId->getPadreId())
+                        ->setParameter('estructuraId', $estructuraId->getId())
+                        ->getQuery()
+                        ->getResult(); // devuelve un array de entidades
+                        
+                        $estructuraFId  = []; // inicializamos el array
+
+                        foreach ($todasestructuraId as $estructura) {
+                            // $estructura es un objeto EstructuraOrganizativa
+                            $estructuraFId[] = $estructura->getId(); // acumulamos cada ID
+                        }
+
+                       // $valorestructura = $estructuraId->getPadreId();
+
+                       //$val = $this->Estructura_Organizativa($valor->getUnidad()->getId());
+
+
                     // Consulta principal
-                    $qb = $this->getEntityManager()->createQueryBuilder();
-                    $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username,u.roles,
+                   $qb = $this->getEntityManager()->createQueryBuilder();
+                    $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
                                 c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
                                 e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
                     ->from('App\Entity\User', 'u')
                     ->innerJoin('u.idCargo', 'c')
                     ->innerJoin('u.idestructura', 'e')
                     ->where('c.nivel = :nivel')
-                    ->andWhere('e.id = :estructuraId')
+                    ->andWhere('e.id IN (:estructuraIds)')
                     ->andWhere('c.id = :cargoId')
-                    ->andwhere('u.id != :userRef')
+                    ->andWhere('u.id != :userRef')
                     ->setParameter('nivel', $nivelId)
-                    ->setParameter('estructuraId', $estructuraId)
+                    ->setParameter('estructuraIds', $estructuraFId) // puede ser array
                     ->setParameter('cargoId', $cargoId)
                     ->setParameter('userRef', $this->security->getUser()->getId())
                     ->orderBy('c.nivel', 'ASC');
 
                     $usuariosFiltrados = $qb->getQuery()->getResult();
+                         
+
+                 }else{
+
+                    // Consulta principal
+                    $qb = $this->getEntityManager()->createQueryBuilder();
+                        $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username,u.roles,
+                                    c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                                    e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+                        ->from('App\Entity\User', 'u')
+                        ->innerJoin('u.idCargo', 'c')
+                        ->innerJoin('u.idestructura', 'e')
+                        ->where('c.nivel = :nivel')
+                        ->andWhere('e.id = :estructuraId')
+                        ->andWhere('c.id = :cargoId')
+                        ->andwhere('u.id != :userRef')
+                        ->setParameter('nivel', $nivelId)
+                        ->setParameter('estructuraId', $estructuraId)
+                        ->setParameter('cargoId', $cargoId)
+                        ->setParameter('userRef', $this->security->getUser()->getId())
+                        ->orderBy('c.nivel', 'ASC');
+
+                        $usuariosFiltrados = $qb->getQuery()->getResult();
+                  }
+
+
                     $contSinResp=0;
                  if (!empty($usuariosFiltrados)) {
                    $datosUsuarios = [];
@@ -1082,17 +1132,61 @@ class Instrumento360Repository extends ServiceEntityRepository
                     // Decodificar a array
                     $cargoIds = json_decode($jsonString, true);
 
-
-                    /* $cargoIds = $this->getEntityManager()->createQueryBuilder()
+                    $cargoId = $this->getEntityManager()->createQueryBuilder()
                         ->select('c.id')
                         ->from('App\Entity\Cargo', 'c')
                         ->innerJoin('App\Entity\User', 'u', 'WITH', 'c.id = u.idCargo')
-                        ->Where('c.id = :cargoId')
-                        ->setParameter('id', $cargoId)
+                        ->where('u.id = :userRef')
+                        ->setParameter('userRef', $this->security->getUser()->getId())
                         ->getQuery()
-                        ->getSingleScalarResult();                 */
+                        ->getSingleScalarResult();
+
+                    if($cargoId ==2 or $cargoId ==3 or $cargoId ==4 or $cargoId ==5 ){  
+
+                         
+
+                        $cargoId = $cargoId +1;
+
+                        $todasestructuraId = $this->getEntityManager()->createQueryBuilder()
+                        ->select('e')
+                        ->from('App\Entity\EstructuraOrganizativa', 'e')
+                        ->where('e.padre_id = :Refpadre')
+                        ->andWhere('e.id != :estructuraId')
+                        ->setParameter('Refpadre', $estructuraId->getId())
+                        ->setParameter('estructuraId', $estructuraId->getId())
+                        ->getQuery()
+                        ->getResult(); // devuelve un array de entidades
+                        
+                        $estructuraFId  = []; // inicializamos el array
+
+                        foreach ($todasestructuraId as $estructura) {
+                            // $estructura es un objeto EstructuraOrganizativa
+                            $estructuraFId[] = $estructura->getId(); // acumulamos cada ID
+                        }
+
+                        $qb = $this->getEntityManager()->createQueryBuilder();
+                        $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.username,u.roles,
+                                    c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                                    e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+                        ->from('App\Entity\User', 'u')
+                        ->innerJoin('u.idCargo', 'c')
+                        ->innerJoin('u.idestructura', 'e')
+                        //->where('c.nivel = :nivel')
+                        ->Where('e.id IN (:estructuraId)')
+                        ->andWhere($qb->expr()->in('c.id', ':cargoIds')) // 👈 AQUÍ el cambio importante
+                        ->andWhere('u.id != :userRef')
+                        //->setParameter('nivel', $nivelId)
+                        ->setParameter('estructuraId', $estructuraFId)
+                        ->setParameter('cargoIds', $cargoId)
+                        ->setParameter('userRef', $this->security->getUser()->getId())
+                        ->orderBy('c.nivel', 'ASC');
+
+                    
+                        $usuariosFiltrados = $qb->getQuery()->getResult();
 
 
+
+                    }else{
 
                         //$cargoIds = [4,5]; // 4 Gerente de Linea / 5 Coordinador IDs de los cargos que deseas incluir
                         //$cargoIds = [4,5,6,7,8,9,10,11,12]; // IDs de los cargos que deseas incluir
@@ -1113,25 +1207,10 @@ class Instrumento360Repository extends ServiceEntityRepository
                         ->setParameter('userRef', $this->security->getUser()->getId())
                         ->orderBy('c.nivel', 'ASC');
 
-                    // Consulta principal
-                    /* $qb = $this->getEntityManager()->createQueryBuilder();
-                    $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username,
-                                c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
-                                e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
-                    ->from('App\Entity\User', 'u')
-                    ->innerJoin('u.idCargo', 'c')
-                    ->innerJoin('u.idestructura', 'e')
-                    ->where('c.nivel = :nivel')
-                    ->andWhere('e.id = :estructuraId')
-                    ->andWhere('c.id != :cargoId')
-                    ->andwhere('u.id != :userRef')
-                    ->setParameter('nivel', $nivelId)
-                    ->setParameter('estructuraId', $estructuraId)
-                    ->setParameter('cargoId', $cargoId)
-                    ->setParameter('userRef', $this->security->getUser()->getId())
-                    ->orderBy('c.nivel', 'ASC'); */
                     
-                   $usuariosFiltrados = $qb->getQuery()->getResult();
+                        $usuariosFiltrados = $qb->getQuery()->getResult();
+                   }
+
                     $contSinResp=0;
                 if (!empty($usuariosFiltrados)) {
                    $datosUsuarios = [];
@@ -1250,7 +1329,7 @@ class Instrumento360Repository extends ServiceEntityRepository
     }
 
 
-   public function findById1($id){
+    public function findById1($id){
         $entityManager = $this->getEntityManager();        
         $entity= $this->getEntityManager()->createQueryBuilder();
         /* $EvaluacionData= $entity->select("a,q,x,f,r")
@@ -1320,6 +1399,63 @@ class Instrumento360Repository extends ServiceEntityRepository
                     $jsonString = $cargoIds[0];
                     // Decodificar a array
                     $cargoIds = json_decode($jsonString, true);
+                    
+                                        $cargoId = $this->getEntityManager()->createQueryBuilder()
+                        ->select('c.id')
+                        ->from('App\Entity\Cargo', 'c')
+                        ->innerJoin('App\Entity\User', 'u', 'WITH', 'c.id = u.idCargo')
+                        ->where('u.id = :userRef')
+                        ->setParameter('userRef', $this->security->getUser()->getId())
+                        ->getQuery()
+                        ->getSingleScalarResult();
+
+                    if($cargoId ==2 or $cargoId ==3 or $cargoId ==4 or $cargoId ==5 ){  
+
+                         
+
+                        $cargoId = $cargoId +1;
+
+                        $todasestructuraId = $this->getEntityManager()->createQueryBuilder()
+                        ->select('e')
+                        ->from('App\Entity\EstructuraOrganizativa', 'e')
+                        ->where('e.padre_id = :Refpadre')
+                        ->andWhere('e.id != :estructuraId')
+                        ->setParameter('Refpadre', $estructuraId->getId())
+                        ->setParameter('estructuraId', $estructuraId->getId())
+                        ->getQuery()
+                        ->getResult(); // devuelve un array de entidades
+                        
+                        $estructuraFId  = []; // inicializamos el array
+
+                        foreach ($todasestructuraId as $estructura) {
+                            // $estructura es un objeto EstructuraOrganizativa
+                            $estructuraFId[] = $estructura->getId(); // acumulamos cada ID
+                        }
+
+                        $qb = $this->getEntityManager()->createQueryBuilder();
+                        $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.username,u.roles,
+                                    c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                                    e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+                        ->from('App\Entity\User', 'u')
+                        ->innerJoin('u.idCargo', 'c')
+                        ->innerJoin('u.idestructura', 'e')
+                        //->where('c.nivel = :nivel')
+                        ->Where('e.id IN (:estructuraId)')
+                        ->andWhere($qb->expr()->in('c.id', ':cargoIds')) // 👈 AQUÍ el cambio importante
+                        ->andWhere('u.id != :userRef')
+                        //->setParameter('nivel', $nivelId)
+                        ->setParameter('estructuraId', $estructuraFId)
+                        ->setParameter('cargoIds', $cargoId)
+                        ->setParameter('userRef', $this->security->getUser()->getId())
+                        ->orderBy('c.nivel', 'ASC');
+
+                         $resultado = $qb->getQuery()->getResult();
+                        //$usuariosFiltrados = $qb->getQuery()->getResult();
+
+
+
+                    }else{ 
+
 
 
                         //$cargoIds = [4,5]; // 4 Gerente de Linea / 5 Coordinador IDs de los cargos que deseas incluir
@@ -1343,7 +1479,7 @@ class Instrumento360Repository extends ServiceEntityRepository
 
                         $resultado = $qb->getQuery()->getResult();
                         //dd($resultado);
-
+                      }
                          $ver = 1222;
 
                   //Autoevaluacion
@@ -1518,8 +1654,55 @@ class Instrumento360Repository extends ServiceEntityRepository
                     $jsonString = $cargoIds[0];
                     // Decodificar a array
                     $cargoIds = json_decode($jsonString, true); */
+                    
+                     $cargoId = $this->getEntityManager()->createQueryBuilder()
+                        ->select('c.id')
+                        ->from('App\Entity\Cargo', 'c')
+                        ->innerJoin('App\Entity\User', 'u', 'WITH', 'c.id = u.idCargo')
+                        ->where('u.id = :userRef')
+                        ->setParameter('userRef', $this->security->getUser()->getId())
+                        ->getQuery()
+                        ->getSingleScalarResult();
 
+                       if($cargoId ==2 or $cargoId ==3 or $cargoId ==4 or $cargoId ==5 ){ 
+                             
+                              $todasestructuraId = $this->getEntityManager()->createQueryBuilder()
+                            ->select('e')
+                            ->from('App\Entity\EstructuraOrganizativa', 'e')
+                            ->where('e.padre_id = :Refpadre')
+                            ->andWhere('e.id != :estructuraId')
+                            ->setParameter('Refpadre', $estructuraId->getPadreId())
+                            ->setParameter('estructuraId', $estructuraId->getId())
+                            ->getQuery()
+                            ->getResult();
 
+                        $estructuraFId = [];
+                        foreach ($todasestructuraId as $estructura) {
+                            $estructuraFId[] = $estructura->getId();
+                        }
+
+                        $qb = $this->getEntityManager()->createQueryBuilder();
+                        $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
+                                    c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                                    e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+                        ->from('App\Entity\User', 'u')
+                        ->innerJoin('u.idCargo', 'c')
+                        ->innerJoin('u.idestructura', 'e')
+                        ->where('c.nivel = :nivel')
+                        ->andWhere($qb->expr()->in('e.id', ':estructuraIds'))
+                        ->andWhere('c.id = :cargoId')
+                        ->andWhere('u.id != :userRef')
+                        ->setParameter('nivel', $nivelId)
+                        ->setParameter('estructuraIds', $estructuraFId, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY) // 👈 importante
+                        ->setParameter('cargoId', $cargoId)
+                        ->setParameter('userRef', $this->security->getUser()->getId())
+                        ->orderBy('c.nivel', 'ASC');
+
+                        $usuariosFiltrados = $qb->getQuery()->getResult();
+
+                       }else{   
+
+                        
                         //$cargoIds = [4,5]; // 4 Gerente de Linea / 5 Coordinador IDs de los cargos que deseas incluir
                         //$cargoIds = [4,5,6,7,8,9,10,11,12]; // IDs de los cargos que deseas incluir
                         $qb = $this->getEntityManager()->createQueryBuilder();
@@ -1539,7 +1722,8 @@ class Instrumento360Repository extends ServiceEntityRepository
                         ->setParameter('userRef', $this->security->getUser()->getId())
                         ->orderBy('c.nivel', 'ASC');
 
-                    $usuariosFiltrados = $qb->getQuery()->getResult();
+                         $usuariosFiltrados = $qb->getQuery()->getResult();
+                       }
                     $datosUsuarios = [];
                  if (!empty($usuariosFiltrados)) {
                    
@@ -1937,6 +2121,142 @@ class Instrumento360Repository extends ServiceEntityRepository
     }
 
 
+
+public function seccionesUsers($data,$validator,$helper): JsonResponse
+{
+    $entityManager = $this->getEntityManager();
+    $idUser = (int)$data["userId"];  
+    $instrumentoId = (int)$data["instrumentoId"];
+
+    $sql = "SELECT
+                i.id AS idinstrumento360,
+                i.nombre AS nombreinstrumento,
+                c.id AS id_competencia360, 
+                c.empresa_id, 
+                c.nombre AS nombrecompetencia, 
+                c.descripcion, 
+                c.tipo, 
+                c.escala_ponderacion,
+                p.id AS idpregunta,
+                p.seccion_id,
+                sc.nombre,
+                sc.orden AS ordenseccion,
+                p.pregunta,
+                p.orden,
+                iu.user_id,
+                iu.unidad_user_id,
+                iu.user_evaluador_id,  
+                iu.unidad_evaluador_id   
+            FROM instrumento360 i
+            JOIN pregunta_evaluacion360 p ON i.id = p.id_instrumento_id
+            JOIN competencia360 c ON c.id = p.id_categoria_id
+            JOIN seccion_evaluacion360 sc ON sc.instrumento360_id = i.id 
+            JOIN instrumento360_usuarios_asignados iu ON i.id = iu.instrumento360_id
+            WHERE c.tipo = 'Cardinal' 
+              AND i.id = :instrumentoId 
+              AND iu.user_id = :idUser";
+
+    $conn = $entityManager->getConnection();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute(['instrumentoId' => $instrumentoId, 'idUser' => $idUser]);
+    $dataUserRespondidaCardinal = $stmt->fetchAll();
+
+    // Inicializamos el array
+    $idpreguntaft = [];
+    foreach ($dataUserRespondidaCardinal as $valor22) {
+        $idpreguntaft[] = $valor22['idpregunta'];
+    }
+
+    $secciones = [];
+    foreach ($dataUserRespondidaCardinal as $valor2) {
+        $seccionId = $valor2['seccion_id'];
+        if ($seccionId !== null) {
+            $preguntas = $entityManager
+                ->getRepository(PreguntaEvaluacion360::class)
+                ->findByIdEncuestaAndSeccionT($instrumentoId, $seccionId, $idpreguntaft);
+
+            $secciones[] = [
+                "id"          => $seccionId,
+                "nombre"      => $valor2['nombre'],  
+                "descripcion" => $valor2['descripcion'],  // 👈 sin tilde
+                "orden"       => $valor2['ordenseccion'],
+                "preguntas"   => $preguntas
+            ];
+        }
+        break; // 👈 ojo: esto corta el loop en la primera iteración
+    }
+
+    return new JsonResponse(['secciones' => $secciones], 200);
+}
+
+
+    /* public function seccionesUsers($data,$validator,$helper): JsonResponse
+    {
+        $entityManager = $this->getEntityManager();
+        $idUser = $data["userIdn"];  
+        $instrumentoId = $data["instrumentoId"];
+        $EvaluacionDataCardinal = "select
+                i.id as idinstrumento360,
+                i.nombre as nombreinstrumento,
+                c.id as id_competencia360, 
+                c.empresa_id, 
+                c.nombre as nombrecompetencia, 
+                c.descripcion, 
+                c.tipo, 
+                c.escala_ponderacion,
+                p.id as idpregunta,
+                p.seccion_id,
+                sc.nombre,
+                sc.orden as ordenseccion,
+                p.pregunta,
+                p.orden,
+                iu.user_id,
+                iu.unidad_user_id,
+                iu.unidad_user_id,
+                iu.user_evaluador_id,  
+                iu.unidad_evaluador_id   
+                
+            FROM instrumento360 i
+            JOIN pregunta_evaluacion360 p ON i.id = p.id_instrumento_id
+            JOIN competencia360 c ON c.id = p.id_categoria_id
+            JOIN seccion_evaluacion360 sc ON sc.instrumento360_id = i.id 
+            JOIN pafarco1_giep.instrumento360_usuarios_asignados iu ON i.id = iu.instrumento360_id
+            WHERE
+                c.tipo ='".'Cardinal'."' AND i.id = ".$instrumentoId." AND iu.user_id = ".$idUser." ";
+
+                $conn = $this->getEntityManager()->getConnection();
+                $stmt = $conn->prepare($EvaluacionDataCardinal);
+                $stmt->execute();
+                $dataUserRespondidaCardinal=$stmt->fetchAll();
+            //$idpreguntaf = []; // 👈 Esto es lo que faltaba
+
+        foreach($dataUserRespondidaCardinal as $clave => $valor22){
+            $idpreguntaft[] = $valor22['idpregunta'];
+        }
+         $secciones=array();
+        foreach($dataUserRespondidaCardinal as $clave=>$valor2){
+            //$idpregunta = $valor2['idpregunta'];
+            $seccionId = $valor2['seccion_id'];
+            if($valor2["seccion_id"]!=null){
+                //foreach($valor1->getSeccions() as $seccion){
+                    //$preguntas= $entityManager->getRepository(PreguntaEvaluacion360::class)->findByIdEvaluacionAndSeccion($id,$seccion->getId());
+                    //$idpregunta1 = [958,959,960,961];
+                    $idpregunta = $idpreguntaft;
+                    $preguntas= $entityManager->getRepository(PreguntaEvaluacion360::class)->findByIdEncuestaAndSeccionT($instrumentoId,$valor2['seccion_id'],$idpregunta);
+                  $secciones[]=array(
+                        "id"=>$seccionId,
+                        "nombre"=>$valor2['nombre'],  
+                        "descripción"=>$valor2['descripcion'],  
+                        "orden"=>$valor2['ordenseccion'],
+                        "preguntas"=>$preguntas);
+            } 
+           break;
+        }
+  
+         return new JsonResponse(['secciones'=>$secciones],200);
+        
+
+    }  */
 
     /**
      * Publicar Instrumento.
