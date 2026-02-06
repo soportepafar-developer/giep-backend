@@ -603,7 +603,7 @@ class Instrumento360Repository extends ServiceEntityRepository
     }
 
 
-    public function findAllPage($data){
+public function findAllPage($data){
         $entityManagerDefault = $this->getEntityManager();
         $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
 
@@ -658,6 +658,7 @@ class Instrumento360Repository extends ServiceEntityRepository
             //$instrumentocapturaDto->createAt=$valor->getCreateAt()->format("Y-m-d");
             $instrumentocapturaDto->fechaVigencia=$valor->getFechaVigencia()->format("Y-m-d");
             $instrumentocapturaDto->publicar=$valor->getPublicar();
+            $instrumentocapturaDto->tipoInstrumento=($valor->getTipoInstrumento()!=null)?array("id"=>$valor->getTipoInstrumento()->getId(),"Nombre"=>$valor->getTipoInstrumento()->getNombre()):[];
             $instrumentocapturaDto->editable=1;
 
             $entity= $this->getEntityManager()->createQueryBuilder();
@@ -688,7 +689,7 @@ class Instrumento360Repository extends ServiceEntityRepository
     }
 
 
-    public function findListByInstructor($data){
+public function findListByInstructor($data){
 
        
 
@@ -1326,8 +1327,7 @@ class Instrumento360Repository extends ServiceEntityRepository
 
        return array("count"=>count($paginatorTotalCount),"data"=>$dataevaluacion);
  
-    }
-
+    }    
 
     public function findById1($id){
         $entityManager = $this->getEntityManager();        
@@ -2121,12 +2121,12 @@ class Instrumento360Repository extends ServiceEntityRepository
     }
 
 
-
-public function seccionesUsers($data,$validator,$helper): JsonResponse
+    public function seccionesUsers($data,$validator,$helper): JsonResponse
 {
     $entityManager = $this->getEntityManager();
     $idUser = (int)$data["userId"];  
     $instrumentoId = (int)$data["instrumentoId"];
+    $idpreguntaf2 = []; // 👈 Esto es lo que faltaba
 
     $sql = "SELECT
                 i.id AS idinstrumento360,
@@ -2146,7 +2146,8 @@ public function seccionesUsers($data,$validator,$helper): JsonResponse
                 iu.user_id,
                 iu.unidad_user_id,
                 iu.user_evaluador_id,  
-                iu.unidad_evaluador_id   
+                iu.unidad_evaluador_id,
+                iu.cargo_user_id     
             FROM instrumento360 i
             JOIN pregunta_evaluacion360 p ON i.id = p.id_instrumento_id
             JOIN competencia360 c ON c.id = p.id_categoria_id
@@ -2162,10 +2163,56 @@ public function seccionesUsers($data,$validator,$helper): JsonResponse
     $dataUserRespondidaCardinal = $stmt->fetchAll();
 
     // Inicializamos el array
+    $cargoUsuario=0;
+    $id_unidad_usuario=0;
+    $seccionId=0;
     $idpreguntaft = [];
     foreach ($dataUserRespondidaCardinal as $valor22) {
+        $seccionId = $valor22['seccion_id'];
         $idpreguntaft[] = $valor22['idpregunta'];
+        $cargoUsuario=$valor22['cargo_user_id'];
+        $id_unidad_usuario=$valor22['unidad_user_id'];
+
     }
+ 
+    // Eliminar duplicados
+    $idpreguntaft_unicos = array_unique($idpreguntaft);
+
+    // Si deseas reindexar el array, puedes usar array_values
+    $idpreguntaft_unicos = array_values($idpreguntaft_unicos);
+    $idpreguntaft = $idpreguntaft_unicos;
+    
+     $tipo = utf8_encode("Tecnica"); 
+     $PreguntasTecnicas = "select
+                c.id as id_competencia360, 
+                c.empresa_id, 
+                c.nombre as nombrecompetencia, 
+                c.descripcion, 
+                c.tipo, 
+                c.escala_ponderacion,
+                cu.unidad_id,
+                cu.cargo_id,
+                p.id as idpregunta,
+                p.seccion_id,
+                p.pregunta,
+                p.orden,
+                sc.instrumento360_id
+            from pafarco1_giep_stage_360.competencia360 c
+            JOIN pafarco1_giep_stage_360.competencia_cargo_unidad cu ON cu.competencia_id = c.id
+            JOIN pafarco1_giep_stage_360.pregunta_evaluacion360 p ON p.id_categoria_id = c.id
+            JOIN pafarco1_giep_stage_360.seccion_evaluacion360 sc ON sc.id = p.seccion_id
+            WHERE c.tipo ='". $tipo ."' AND cu.unidad_id = ".$id_unidad_usuario." AND cu.cargo_id = ".$cargoUsuario." AND p.seccion_id = ".$seccionId."  ";
+               $conn2 = $this->getEntityManager()->getConnection();
+                $stmt2 = $conn2->prepare($PreguntasTecnicas);
+                $stmt2->execute();
+                $dataPreguntasTecnicas=$stmt2->fetchAll();
+
+           // $dataEvaluacion=null;
+
+        foreach($dataPreguntasTecnicas as $clave2 => $valor3){
+            $idpreguntaft[] = $valor3['idpregunta'];
+        }  
+        
 
     $secciones = [];
     foreach ($dataUserRespondidaCardinal as $valor2) {
@@ -2188,6 +2235,7 @@ public function seccionesUsers($data,$validator,$helper): JsonResponse
 
     return new JsonResponse(['secciones' => $secciones], 200);
 }
+
 
 
     /* public function seccionesUsers($data,$validator,$helper): JsonResponse
