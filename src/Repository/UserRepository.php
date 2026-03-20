@@ -219,7 +219,7 @@ class UserRepository extends ServiceEntityRepository
     }
 
     
-     public function findById($id,$url){
+  public function findById($id,$url){
         $entityManager = $this->getEntityManager();
         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
         $userData= $this->createQueryBuilder('a')
@@ -301,6 +301,9 @@ class UserRepository extends ServiceEntityRepository
             $userDto->roles= $rolesUser;
             $userDto->redes=$redesSociales;
             $userDto->empresa=($empresa->getNombre()!=null)?array("id"=>$empresa->getId(),"Nombre"=>$empresa->getNombre(),"url_logo"=>$url.''.$empresa->getUrlLogo()):[];
+
+            $userDto->unidad=($valor->getIdestructura()!=null)?array("id"=>$valor->getIdestructura()->getId(),"Label"=>$valor->getIdestructura()->getEstructuraOrganizativa()):[];
+
             $rolesUser=[];
             $telefonosUser=[];
             $dataUser[]=$userDto;

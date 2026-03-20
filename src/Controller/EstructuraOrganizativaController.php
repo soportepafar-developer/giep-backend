@@ -71,4 +71,28 @@ class EstructuraOrganizativaController extends AbstractController
          return new JsonResponse($data,200);  
     }
 
+    /**
+     * Get id estructuraorganizativa. 
+     * @Route("/api/estructuraorganizativa/definicion/{id}", methods={"GET"})
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns Estructura Organizativa Definición",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=EstructuraOrganizativaOutPutDto::class))
+     *     )
+     * )
+     * @OA\Tag(name="Instrumento360 Estructura Organizativa Denifición")
+     * @Security(name="Bearer")
+     */
+    public function findDefinicionid($id,Request $request,EstructuraOrganizativaRepository $repository): JsonResponse
+    {
+        $data = $repository
+        ->findDefincionid($id);
+        if (!$data) {
+            return new JsonResponse(['msg'=>'No existen Registros'],200);  
+        }   
+         return new JsonResponse($data,200);  
+    }
+
 }
