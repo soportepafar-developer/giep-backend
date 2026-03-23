@@ -120,6 +120,10 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
                         $entity->setEmpresa($empresa);
 
                     $entity->setPrioridad($valor["prioridad"]);   
+
+                     $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                    $entity->setCreateAt(new \DateTime());
+                    $entity->setCreateBy($currentUser->getUserName());
                         
                     $entityManager->persist($entity);
                     $entityManager->flush();
@@ -263,6 +267,11 @@ class CompetenciaCargoUnidadRepository extends ServiceEntityRepository
             $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
             if($empresa)
                 $entity->setEmpresa($empresa);   
+
+            $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+            $entity->setUpdateBy($currentUser->getUserName());
+            $entity->setUpdateAt(new \DateTime());
+
             $entityManager->persist($entity);
             $entityManager->flush();
             return new JsonResponse(['msg'=>'Registro Actualizado: '.$entity->getId()],200);

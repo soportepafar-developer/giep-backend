@@ -110,7 +110,12 @@ class Competencia360Repository extends ServiceEntityRepository
                         $categoriaCargoEscala->setEscala($valor["escala"]);   
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                         if($empresa)
-                        $categoriaCargoEscala->setIdempresa($empresa);         
+                        $categoriaCargoEscala->setIdempresa($empresa);   
+
+                       $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                       $categoriaCargoEscala->setCreateAt(new \DateTime());
+                       $categoriaCargoEscala->setCreateBy($currentUser->getUserName());
+
                         $entityManager->persist($categoriaCargoEscala);
                         $entityManager->flush();
             
@@ -127,7 +132,12 @@ class Competencia360Repository extends ServiceEntityRepository
                         $competencia360NivelPonderacion->setPonderacion($valor["ponderacion"]);         
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                         if($empresa)
-                            $competencia360NivelPonderacion->setIdempresa($empresa);         
+                            $competencia360NivelPonderacion->setIdempresa($empresa);   
+                        
+                       $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                       $competencia360NivelPonderacion->setCreateAt(new \DateTime());
+                       $competencia360NivelPonderacion->setCreateBy($currentUser->getUserName());
+
                         $entityManager->persist($competencia360NivelPonderacion);
                         $entityManager->flush();
                     }
@@ -241,6 +251,11 @@ class Competencia360Repository extends ServiceEntityRepository
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                         if($empresa)
                         $categoriaCargoEscala->setIdempresa($empresa);         
+
+                        $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                        $categoriaCargoEscala->setUpdateBy($currentUser->getUserName());
+                        $categoriaCargoEscala->setUpdateAt(new \DateTime());
+
                         $entityManager->persist($categoriaCargoEscala);
                         $entityManager->flush();
             
@@ -256,7 +271,12 @@ class Competencia360Repository extends ServiceEntityRepository
                         $competencia360NivelPonderacion->setPonderacion($valor["ponderacion"]);         
                         $empresa= $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
                         if($empresa)
-                            $competencia360NivelPonderacion->setIdempresa($empresa);         
+                            $competencia360NivelPonderacion->setIdempresa($empresa);  
+                        
+                        $currentUser =$entityManager->getRepository(User::class)->find($this->security->getUser()->getId());
+                        $competencia360NivelPonderacion->setUpdateBy($currentUser->getUserName());
+                        $competencia360NivelPonderacion->setUpdateAt(new \DateTime());
+
                         $entityManager->persist($competencia360NivelPonderacion);
                         $entityManager->flush();
                     }

@@ -49,6 +49,9 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
+            // Para obtener la consulta SQL
+            $sql = $entity->getQuery()->getSQL();
+
 /*         $entity = $this->getEntityManager()->createQueryBuilder();
         $data = $entity->select("p,q,r")
             ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
@@ -65,10 +68,16 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             $preguntaDto = new PreguntaEvaluacion360Dto();
             $preguntaDto->id = $valor->getId();
             $preguntaDto->pregunta = $valor->getPregunta();
+            //$preguntaDto->pregunta = $sql;
+            
+
             $preguntaDto->class = $valor->getClass();
             $preguntaDto->obligatorio = $valor->getObligatorio();
             $preguntaDto->orden = $valor->getOrden();
             $preguntaDto->idInput = ($valor->getIdInput() != null) ? array("id" => $valor->getIdInput()->getId(), "Descripcion" => $valor->getIdInput()->getNombre()) : [];
+            
+            $preguntaDto->IdCategoria = ($valor->getIdCategoria() != null) ? $valor->getIdCategoria()->getId() : null;
+            
             $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array("id" => $valor->getIdCategoria()->getId(), "Descripcion" => $valor->getIdCategoria()->getNombre()) : null;
             $preguntaDto->puntos = $valor->getPuntos();
             $preguntaDto->idInstrumento = ($valor->getIdInstrumento() != null) ? array("id" => $valor->getIdInstrumento()->getId(), "Descripcion" => $valor->getIdInstrumento()->getNombre()) : [];
@@ -98,7 +107,7 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
         return $dataPregunta;
     }
 
-    public function findByIdEncuestaAndSeccionT($id, $idseccion,$idpregunta)
+        public function findByIdEncuestaAndSeccionT($id, $idseccion,$idpregunta)
     {
         /* $entity = $this->getEntityManager()->createQueryBuilder();
         $data = $entity->select("p,q,r")
@@ -109,7 +118,6 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             ->andWhere("r.id='" . $idseccion . "'")
             ->getQuery()
             ->getResult(); */
-
         $entity = $this->getEntityManager()->createQueryBuilder();
         $data = $entity->select("p,q,r")
             ->from("App\Entity\Instrumento360\PreguntaEvaluacion360", "p")
@@ -130,7 +138,7 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             $preguntaDto->obligatorio = $valor->getObligatorio();
             $preguntaDto->orden = $valor->getOrden();
             $preguntaDto->idInput = ($valor->getIdInput() != null) ? array("id" => $valor->getIdInput()->getId(), "Descripcion" => $valor->getIdInput()->getNombre()) : [];
-            $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array("id" => $valor->getIdCategoria()->getId(), "Descripcion" => $valor->getIdCategoria()->getNombre()) : null;
+            $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array("id" => $valor->getIdCategoria()->getId(), "Descripcion" => $valor->getIdCategoria()->getNombre(), "Descripcion2" => $valor->getIdCategoria()->getDescripcion()) : null;
             $preguntaDto->puntos = $valor->getPuntos();
             $preguntaDto->idInstrumento = ($valor->getIdInstrumento() != null) ? array("id" => $valor->getIdInstrumento()->getId(), "Descripcion" => $valor->getIdInstrumento()->getNombre()) : [];
             $opciones = [];
@@ -158,6 +166,7 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
         }
         return $dataPregunta;
     }
+
 
     public function findByIdEncuestaAndSeccionCardinal($id, $idseccion,$idpregunta)
     {

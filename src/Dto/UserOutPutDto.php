@@ -210,6 +210,12 @@ class UserOutPutDto
     * )     */
     public  $redes;
 
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    public $idestructura;
+
+
     public function __construct()
     {
         $this->telefonos = new ArrayCollection();
@@ -413,6 +419,11 @@ class UserOutPutDto
     public function getCoordinacion(): string
     {
         return $this->Coordinacion;
+    }
+
+    public function getIdestructura(): string
+    {
+        return $this->idestructura;
     }
 
 }

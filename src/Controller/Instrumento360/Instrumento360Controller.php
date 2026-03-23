@@ -456,5 +456,40 @@ class Instrumento360Controller extends AbstractController
          return $data;  
     }
 
+        /**
+        * @Route("/api/instrumento360/secciones", methods={"POST"})
+         * @OA\Post(
+         * summary="Consultar secciones",
+         * description="Consultar secciones",
+         * operationId="instrumento360secciones",
+         * tags={"Instrumento360"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="Instrumento360",
+         *    @OA\JsonContent(
+         *       required={"nombre","userId"},
+         *       @OA\Property(property="userId", type="integer", format="integer", example="430"),
+         *       @OA\Property(property="instrumentoId", type="integer", format="integer", example="15"),        
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */    
+    public function seccionesUsers(Request $request,Instrumento360Repository $instrumentorepository,ValidatorInterface $validator,Helper $helper): JsonResponse
+    {   
+        try {
+            $data = json_decode($request->getContent(),true);
+            return $instrumentorepository->seccionesUsers($data,$validator,$helper); 
+        } catch (Exception $e) {
+            return new JsonResponse(['msg'=>'Error del Servidor'],500);
+        }
+    }
+
 
 } 
