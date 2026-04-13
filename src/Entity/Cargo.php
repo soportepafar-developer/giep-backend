@@ -71,6 +71,21 @@ class Cargo
      */
     private $idempresa;
 
+     /**
+     * @ORM\Column(type="integer")
+     */
+    private $tipo;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $id_jerarquia_ascendente;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $id_jerarquia_descendente;
+
     public function __construct()
     {
         $this->opcionesCargos = new ArrayCollection();
@@ -234,6 +249,42 @@ class Cargo
     public function setIdempresa(?Empresa $idempresa): self
     {
         $this->idempresa = $idempresa;
+
+        return $this;
+    }
+
+    public function getTipo(): ?int
+    {
+        return $this->tipo;
+    }
+
+    public function setTipo(int $tipo): self
+    {
+        $this->tipo = $tipo;
+
+        return $this;
+    }
+
+    public function getIdJerarquiaAscendente(): ?string
+    {
+        return $this->id_jerarquia_ascendente;
+    }
+
+    public function setIdJerarquiaAscendente(?string $id_jerarquia_ascendente): self
+    {
+        $this->id_jerarquia_ascendente = $id_jerarquia_ascendente;
+
+        return $this;
+    }
+
+    public function getIdJerarquiaDescendente(): ?string
+    {
+        return $this->id_jerarquia_descendente;
+    }
+
+    public function setIdJerarquiaDescendente(?string $id_jerarquia_descendente): self
+    {
+        $this->id_jerarquia_descendente = $id_jerarquia_descendente;
 
         return $this;
     }

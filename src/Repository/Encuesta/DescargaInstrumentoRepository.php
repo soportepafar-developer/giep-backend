@@ -379,7 +379,7 @@ class DescargaInstrumentoRepository extends ServiceEntityRepository
                     $data=$dataResultado;
                 }
         }elseif($param["byuser"]==2){
-            $sql = "select * from dependencia";
+            $sql = "select * from estructura_organizativa";
             $conn = $this->getEntityManager()->getConnection();
             $stmt = $conn->prepare($sql);
             $stmt->execute();
@@ -409,7 +409,7 @@ class DescargaInstrumentoRepository extends ServiceEntityRepository
                 foreach($cargoData as $claveCargo=>$valorCargo){
                     $contadorPersonas=0;
 
-                    $whereUser = $wherePersona."  and b.id_dependencia_id= ".$valorDepedencia["id"]." 
+                    $whereUser = $wherePersona."  and b.idestructura= ".$valorDepedencia["id"]." 
                     and id_cargo_id= ".$valorCargo["id"];
                     $dataUser=$this->getUserByInstrumentoAndDependenciaAndCargo($whereUser,$page,$results_per_page,$page_first_result,$id);
                     $idsUser="";
@@ -521,7 +521,7 @@ class DescargaInstrumentoRepository extends ServiceEntityRepository
             if(isset($param["categoryIds"])){
                 $categorias=implode(",",$param["categoryIds"]);
             }
-            $sql = "select * from dependencia";
+            $sql = "select * from estructura_organizativa";
             $conn = $this->getEntityManager()->getConnection();
             $stmt = $conn->prepare($sql);
             $stmt->execute();
@@ -806,14 +806,13 @@ class DescargaInstrumentoRepository extends ServiceEntityRepository
     
             $sqlUser = " SELECT b.id,b.numero_documento, b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,a.fecha_inicio,
             f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id
-            ,m.descripcion as dependencia, n.nombre gerencia,o.nombre coordinacion,
+            , s.estructura_organizativa as  dependencia,'' as gerencia,'' as coordinacion,
             p.descripcion cargo  
             from instrumento_usuario a inner join user b on a.id_user_id = b.id
             left join pais f on b.pais_id = f.id 
             left join estado e on b.estado_id= e.id 
             left join ciudad c on b.ciudad_id = c.id 
-            left join dependencia m on b.id_dependencia_id = m.id left join gerencia n on 
-            b.id_gerencia_id = n.nombre left join coordinacion o on b.id_coordinacion_id = o.id
+            left join estructura_organizativa s on s.id = b.idestructura
             left join cargo p on b.id_cargo_id = p.id
              ".$where . " and a.respondida=1  "; //and b.id_cargo_id in (5,6)  
     
@@ -843,15 +842,15 @@ class DescargaInstrumentoRepository extends ServiceEntityRepository
             }
     
             $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,a.fecha_inicio,
-            f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id
-            ,m.descripcion as dependencia, n.nombre gerencia,o.nombre coordinacion,
+            f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id,
+            s.estructura_organizativa as dependencia, '' as gerencia,'' as 
+            coordinacion,
             p.descripcion cargo  
             from instrumento_usuario a inner join user b on a.id_user_id = b.id
             left join pais f on b.pais_id = f.id 
             left join estado e on b.estado_id= e.id 
             left join ciudad c on b.ciudad_id = c.id 
-            left join dependencia m on b.id_dependencia_id = m.id left join gerencia n on 
-            b.id_gerencia_id = n.nombre left join coordinacion o on b.id_coordinacion_id = o.id
+            left join estructura_organizativa s on s.id = b.idestructura left join cargo p on b.id_cargo_id = p.id
             left join cargo p on b.id_cargo_id = p.id
              ".$where . " and a.respondida=1  and a.id_instrumento_id = ".$id; 
         }else{

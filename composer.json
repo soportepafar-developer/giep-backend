@@ -43,7 +43,11 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "endroid/installer": false,
+            "symfony/flex": false
+        }
     },
     "autoload": {
         "psr-4": {

@@ -509,7 +509,7 @@ function AddPage($orientation='', $size='', $rotation=0 ,$titulo,$logo,$logoqr)
 	$this->ColorFlag = $cf;
 }
 
-function Header()
+function Header($titulo,$logo,$logoqr)
 {
 	// To be implemented in your own inherited class
 }

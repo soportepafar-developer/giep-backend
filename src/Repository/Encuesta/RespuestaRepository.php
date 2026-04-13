@@ -370,6 +370,7 @@ class RespuestaRepository extends ServiceEntityRepository
                         inner join user f on f.id = r.id_user_id
                         $where and a.id_user_id=".$valor['id']." and oc.id_cargo_id=".$valor['id_cargo_id']." 
                         GROUP by h.nombre,h.id";
+
                         $conn = $this->getEntityManager()->getConnection();
                         $stmt = $conn->prepare($sql);
                         $stmt->execute();
@@ -424,7 +425,7 @@ class RespuestaRepository extends ServiceEntityRepository
                     }
                 }
         }elseif($param["byuser"]==2){
-            $sql = "select * from dependencia";
+            $sql = "select * from estructura_organizativa";
             $conn = $this->getEntityManager()->getConnection();
             $stmt = $conn->prepare($sql);
             $stmt->execute();
@@ -454,7 +455,7 @@ class RespuestaRepository extends ServiceEntityRepository
                 foreach($cargoData as $claveCargo=>$valorCargo){
                     $contadorPersonas=0;
 
-                    $whereUser = $wherePersona."  and b.id_dependencia_id= ".$valorDepedencia["id"]." 
+                    $whereUser = $wherePersona."  and b.idestructura= ".$valorDepedencia["id"]." 
                     and id_cargo_id= ".$valorCargo["id"];
                     $dataUser=$this->getUserByInstrumentoAndDependenciaAndCargo($whereUser,$page,$results_per_page,$page_first_result,$id);
                     $idsUser="";
@@ -562,7 +563,7 @@ class RespuestaRepository extends ServiceEntityRepository
             if(isset($param["categoryIds"])){
                 $categorias=implode(",",$param["categoryIds"]);
             }
-            $sql = "select * from dependencia";
+            $sql = "select * from estructura_organizativa";
             $conn = $this->getEntityManager()->getConnection();
             $stmt = $conn->prepare($sql);
             $stmt->execute();
@@ -803,23 +804,22 @@ class RespuestaRepository extends ServiceEntityRepository
                 $number_of_page = ceil ($this->totalCount / $results_per_page); 
             }
     
-            $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,a.fecha_inicio,
+            $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 
+            'Femenino' when 'm' then 'Masculino' end as sexo,a.fecha_inicio,
             f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id
-            ,m.descripcion as dependencia, n.nombre gerencia,o.nombre coordinacion,
+            , s.estructura_organizativa as  dependencia,'' as gerencia,'' as coordinacion,
             p.descripcion cargo  
             from instrumento_usuario a inner join user b on a.id_user_id = b.id
             left join pais f on b.pais_id = f.id 
             left join estado e on b.estado_id= e.id 
             left join ciudad c on b.ciudad_id = c.id 
-            left join dependencia m on b.id_dependencia_id = m.id left join gerencia n on 
-            b.id_gerencia_id = n.nombre left join coordinacion o on b.id_coordinacion_id = o.id
+            left join estructura_organizativa s on s.id = b.idestructura
             left join cargo p on b.id_cargo_id = p.id
-             ".$where . " and a.respondida=1 LIMIT ". $page_first_result . ',' . $results_per_page;  
-    
+             ".$where . " and a.respondida=1 LIMIT ". $page_first_result . ',' . $results_per_page;    
         }else{
             $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,
             case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,
-            a.fecha_inicio, f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id  
+            a.fecha_inicio, f.nombre as pais,e.nombre as estado,c.nombre as ciudad,a.id_cargo_id  
             from instrumento_usuario a inner join user b on a.id_user_id = b.id
             left join pais f on b.pais_id = f.id 
             left join estado e on b.estado_id= e.id 
@@ -842,17 +842,12 @@ class RespuestaRepository extends ServiceEntityRepository
                 $number_of_page = ceil ($this->totalCount / $results_per_page); 
             }
     
-            $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 'Femenino' when 'm' then 'Masculino' end as sexo,a.fecha_inicio,
-            f.nombre as pais,e.nombre as estado,c.nombre as ciudad,b.id_cargo_id
-            ,m.descripcion as dependencia, n.nombre gerencia,o.nombre coordinacion,
-            p.descripcion cargo  
-            from instrumento_usuario a inner join user b on a.id_user_id = b.id
-            left join pais f on b.pais_id = f.id 
-            left join estado e on b.estado_id= e.id 
-            left join ciudad c on b.ciudad_id = c.id 
-            left join dependencia m on b.id_dependencia_id = m.id left join gerencia n on 
-            b.id_gerencia_id = n.nombre left join coordinacion o on b.id_coordinacion_id = o.id
-            left join cargo p on b.id_cargo_id = p.id
+            $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,case b.sexo when 'f' then 'Femenino' 
+            when 'm' then 'Masculino' end as sexo,a.fecha_inicio, f.nombre as pais,e.nombre as estado,c.nombre as 
+            ciudad,b.id_cargo_id ,s.estructura_organizativa as dependencia, '' as gerencia,'' as 
+            coordinacion, p.descripcion cargo from instrumento_usuario a inner join user b on a.id_user_id = b.id 
+            left join pais f on b.pais_id = f.id left join estado e on b.estado_id= e.id left join ciudad c on b.ciudad_id = c.id 
+            left join estructura_organizativa s on s.id = b.idestructura left join cargo p on b.id_cargo_id = p.id
              ".$where . " and a.respondida=1  and a.id_instrumento_id = ".$id; 
         }else{
             $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,
@@ -1116,11 +1111,9 @@ class RespuestaRepository extends ServiceEntityRepository
 
         $entityManager = $this->getEntityManager();
         $data=[];
-        $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,b.id_cargo_id,
-        f.descripcion 
-        from instrumento_usuario a inner join user b on a.id_user_id = b.id
-        inner join dependencia f on f.id = b.id_dependencia_id  
-        where a.id_instrumento_id=".$id." and b.id_dependencia_id=".$idpedendencia; 
+        $sqlUser = " SELECT b.id,b.primer_nombre,b.primer_apellido,b.id_cargo_id, s.estructura_organizativa 
+        from instrumento_usuario a inner join user b on a.id_user_id = b.id left join estructura_organizativa s on s.id = b.idestructura  
+        where a.id_instrumento_id=".$id." and b.idestructura=".$idpedendencia; 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sqlUser);
         $stmt->execute();

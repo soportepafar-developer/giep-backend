@@ -212,6 +212,8 @@ class Helper{
                         $value = date("H:i:s", $d);
                     }else if( $fieldMappings[$key]['type'] == 'string' ){
                             $value = $value;
+                    }else if( $fieldMappings[$key]['type'] == 'text' ){
+                            $value = $value;
                         // lowercase
                        // $value = strtolower($value);
                     }else if( $fieldMappings[$key]['type'] == 'smallint' ){
