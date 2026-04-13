@@ -1047,4 +1047,73 @@ class UserController extends AbstractController
          return new JsonResponse($data,200);  
     }
 
+    /**
+        * @Route("/api/user/estructurausuario", methods={"POST"})
+        * @OA\Post(
+         * summary="User Estructura",
+         * description="User Estructura",
+         * operationId="userestructura",
+         * tags={"Users"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="parametro",
+         *    @OA\JsonContent(
+         *       required={"page"},
+         *       @OA\Property(property="page", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="rowByPage", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="word", type="integer", format="integer", example="1"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */    public function findEstructura(Request $request,UserRepository $repository): JsonResponse
+    {
+        $param = json_decode($request->getContent(),true);
+
+        return $repository->findEstructura($param,$this->params->get('urlapi'));
+       
+        /* if (!$data) {
+            return new JsonResponse(['msg'=>'No existen Registros'],200);  
+        }   
+         return new JsonResponse($data,200);   */
+    }
+
+
+    /**
+        * @Route("/api/user/actualizarusuariocargos", methods={"POST"})
+        * @OA\Post(
+         * summary="User Actualizar Usuarios Cargos",
+         * description="User Actualizar Usuarios Cargos",
+         * operationId="actualizarusuariocargos",
+         * tags={"Users"},
+         * @OA\RequestBody(
+         *    required=true,
+         *    description="parametro",
+         *    @OA\JsonContent(
+         *       required={"page"},
+         *       @OA\Property(property="page", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="rowByPage", type="integer", format="integer", example="1"),
+         *       @OA\Property(property="word", type="integer", format="integer", example="1"),
+         *    ),
+         * ),
+         * @OA\Response(
+         *    response=422,
+         *    description="Wrong credentials response",
+         *    @OA\JsonContent(
+         *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+         *        )
+         *     )
+         * )
+    */    public function findUserCargoActualizar(Request $request,UserRepository $repository): JsonResponse
+    {
+        $param = json_decode($request->getContent(),true);
+        return $repository->findActualizarUserCargos($param,$this->params->get('urlapi'));
+    }
+
 }

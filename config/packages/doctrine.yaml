@@ -14,19 +14,20 @@ doctrine:
                     driver: 'pdo_mysql'
                     #server_version: '5.7'
                     charset: utf8mb4
-                #notification:
+                documentodigital:
                     # configure these for your database server
-                    #url: '%env(DATABASE_URL_NOTIFICATION)%'
-                   # driver: 'pdo_mysql'
+                    url: '%env(DATABASE_URL_DOCUMENTODIGITAL)%'
+                    driver: 'pdo_mysql'
                     #server_version: '5.7'
-                   # charset: utf8mb4    
+                    charset: utf8mb4    
+
         orm:
             default_entity_manager: default
             entity_managers:
                 default:
                     connection: default
                     naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-                    #auto_mapping: true
+                    #auto_mapping: false
                     mappings:
                         App:
                             is_bundle: false
@@ -44,13 +45,14 @@ doctrine:
                             dir: '%kernel.project_dir%/src/Entity/StaExped'
                             prefix: 'App\Entity\StaExped'
                             alias: Customer
-                #notification:
-                 #   connection: notification
-                  #  naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-                  #  mappings:
-                   #     Notification:
-                    #        is_bundle: false
-                     #       type: annotation
-                      #      dir: '%kernel.project_dir%/src/Entity'
-                       #     prefix: 'App\Entity'
-                        #    alias: Notification            
+                            
+                documentodigital:
+                    connection: documentodigital
+                    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+                    mappings:
+                        Documentodigital:
+                            is_bundle: false
+                            type: annotation
+                            dir: '%kernel.project_dir%/src/Entity/DocumentoDigital'
+                            prefix: 'App\Entity\DocumentoDigital'
+                            alias: Documentodigital

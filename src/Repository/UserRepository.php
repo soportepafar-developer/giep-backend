@@ -1254,6 +1254,228 @@ class UserRepository extends ServiceEntityRepository
        return array("data"=>$dataSubject);
     }
 
+    public function findEstructura($data,$url){
+        $entityManager = $this->getEntityManager();
+         //where a.presidencia='Presidencia'
+        //$sql = " SELECT a.* FROM `actualizar_usuariosf1` a 
+
+        $sql = " SELECT a.* FROM `actualizar_usuariosf` a 
+        order by id asc "; 
+
+        /* $sql = " SELECT a.* FROM `actualizar_usuariosf` a where cedula=16819323
+        order by id asc ";   */
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result= $stmt->fetchAll();
+        //$result= $stmt->executeQuery();
+        $dataTotal=array();
+        $colorprogress='';
+        $nivelactual=0;
+        $cedula=0;
+        foreach($result as $claveResult=>$valorResult){
+            $id= $valorResult["id"];
+            $cedula= $valorResult["cedula"];
+            $presidenciavp= ltrim($valorResult["presidencia"]);
+
+            $sqluser = " SELECT u.* FROM `user` u 
+             where u.numero_documento='".$cedula."';";
+            $connuser = $this->getEntityManager()->getConnection();
+            $stmtuser = $connuser->prepare($sqluser);
+            $stmtuser->execute();
+            $resultuser= $stmtuser->fetchAll();
+            if ($resultuser) {
+
+                 /* if ($cedula== 11667690){
+                    $es=1;
+                } */
+
+            $sql2 = " SELECT e.* FROM `estructura_organizativa` e 
+             where e.estructura_organizativa='".$presidenciavp."';";
+            $conn1 = $this->getEntityManager()->getConnection();
+            $stmt1 = $conn1->prepare($sql2);
+            $stmt1->execute();
+            $result1= $stmt1->fetchAll();
+            if ($result1) {
+
+                $nivelactual = $result1[0]["id"];
+
+                /* if ($cedula== 11667690){
+                    $es=1;
+                } */
+
+                if ($valorResult["gerenciageneral"]!="No reporta a Gerencia General") {
+                    $idvp= $result1[0]["id"];
+                    $nivactualiza = $this->findEstructuraFinal($idvp,$valorResult["gerenciageneral"]);
+                    if ($nivactualiza !=0) {
+                        $nivelactual = $nivactualiza;
+                    }
+                }
+
+                if ($valorResult["gerencialinea"]!="No reporta a Gerencia de línea") {
+                    $idvp= $result1[0]["id"];
+                    //$nivactualiza = $this->findEstructuraFinal($idvp,$valorResult["gerencialinea"]);
+                    $nivactualiza = $this->findEstructuraFinal($nivelactual,$valorResult["gerencialinea"]);
+                    if ($nivactualiza !=0) {
+                        $nivelactual = $nivactualiza;
+                    }
+                }
+                
+                if ($valorResult["coordinacion"]!="No reporta a Coordinación") {
+                    $idvp= $result1[0]["id"];
+                    $nivactualiza = $this->findEstructuraFinal($nivelactual,$valorResult["coordinacion"]);
+                    if ($nivactualiza !=0) {
+                        $nivelactual = $nivactualiza;
+                    }
+                }
+
+
+
+                $sql3 = "update user set idestructura='".$nivelactual."' where numero_documento='".$cedula."' ";
+                $conn3 = $this->getEntityManager()->getConnection();
+                $stmt3 = $conn3->prepare($sql3);
+                $stmt3->execute(); 
+
+                $sqlexist = "update actualizar_usuariosf set swexiste=1 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+
+            }else{
+                //si no existe el usuario estructura organizativa
+                $sqlexist = "update actualizar_usuariosf set swexiste=0, estructura_organizativa='".$presidenciavp."'   where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+                
+            }
+        }else{
+            //no existe el usuario    
+            $sqlexist = "update actualizar_usuariosf set swexisteusuario=1 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+
+        }
+
+
+           // break;
+        }
+        return new JsonResponse(['msg'=>'Fin de la actualización satisfactoriamente: '],200);
+    }
+
+   /**
+     * Actualizar cargos de usuarios.
+     */
+    public function findActualizarUserCargos($data,$url){
+        $entityManager = $this->getEntityManager();
+         //where a.presidencia='Presidencia'
+        $sql = " SELECT a.* FROM `actualizar_usuarios_cargos` a 
+        order by id asc ";
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result= $stmt->fetchAll();
+        //$result= $stmt->executeQuery();
+        $dataTotal=array();
+        $colorprogress='';
+        $nivelactual=0;
+        $cedula=0;
+        foreach($result as $claveResult=>$valorResult){
+            $id_cargo= $valorResult["id_cargo_prodc"];
+            //$id_cargo= $valorResult["id_cargo_stage"];
+            $cedula= $valorResult["cedula"];
+
+            $sqluser = " SELECT u.* FROM `user` u 
+             where u.numero_documento='".$cedula."';";
+            $connuser = $this->getEntityManager()->getConnection();
+            $stmtuser = $connuser->prepare($sqluser);
+            $stmtuser->execute();
+            $resultuser= $stmtuser->fetchAll();
+            if ($resultuser) {
+           
+                //$nivelactual = $resultuser[0]["id"];
+
+                $sql3 = "update user set id_cargo_id='".$id_cargo."' where numero_documento='".$cedula."' ";
+                $conn3 = $this->getEntityManager()->getConnection();
+                $stmt3 = $conn3->prepare($sql3);
+                $stmt3->execute(); 
+
+                //si no existe el usuario
+                $sqlexist = "update actualizar_usuarios_cargos set swexiste=1 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+
+
+            }else{
+                //si no existe el usuario
+                $sqlexist = "update actualizar_usuarios_cargos set swexiste=0 where cedula=".$cedula."";
+                $connexist = $this->getEntityManager()->getConnection();
+                $stmtexist = $connexist->prepare($sqlexist);
+                $stmtexist->execute();
+                
+            }
+
+           // break;
+        }
+        return new JsonResponse(['msg'=>'Fin de la actualización satisfactoriamente: '],200);
+    }
+
+
+
+
+   public function findEstructuraFinal($idvp,$buscanivel){
+        $entityManager = $this->getEntityManager();
+        $sql1='';
+        $sql1 = " SELECT e.* FROM `estructura_organizativa` e 
+        where e.padre_id=".$idvp." AND e.estructura_organizativa='".$buscanivel."' ;";
+        $conn1 = $this->getEntityManager()->getConnection();
+        $stmt1 = $conn1->prepare($sql1);
+        $stmt1->execute();
+        $result1= $stmt1->fetchAll();
+        if ($result1) {
+            return $result1[0]["id"];
+        }else{
+            return 0;
+        }
+
+
+        /* $sql2 = " SELECT e.* FROM `estructura_organizativa` e 
+        where  e.estructura_organizativa='".$buscanivel."' ;";
+        $conn2 = $this->getEntityManager()->getConnection();
+        $stmt2 = $conn1->prepare($sql2);
+        $stmt2->execute();
+        $result2= $stmt2->fetchAll();
+        if ($result2) {
+
+            $ver = $result2[0]["padre_id"];
+            if (isset($result2[0]["padre_id"]) && !empty($result2[0]["padre_id"])) {
+                // Hay información válida en padre_id
+                //return $result2[0]["padre_id"];    
+
+                return $result2[0]["id"];
+            } else {
+                // No hay información o está vacío
+               return $result2[0]["id"];
+            }
+
+            //return $result2[0]["id"];
+
+        }else{
+            return 0;
+        } */
+        
+
+
+
+
+
+
+    }
+
 
 }
 

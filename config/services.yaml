@@ -16,7 +16,9 @@ parameters:
     urlapideletenotification: 'http://localhost:3000/notification/deleteNotificacion'
     urlapideleteallnotification: 'http://localhost:3000/notification/deleteAll'
     urlapinotificationpushbroadcast: 'http://localhost:3000/notification/push/broadcast'
-    
+
+    app.uploads_directory: '%kernel.project_dir%/var/uploads'
+    app.deepseek_api_key: '%env(DEEPSEEK_API_KEY)%'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -41,6 +43,15 @@ services:
 
     App\Command\GererarLogInterfase:
         arguments: ['%owncloudrouter%','%pathinterfacexecute%']
+
+    App\Service\DeepSeekAnalyzer:
+        arguments:
+            $apiKey: '%app.deepseek_api_key%'
+
+    App\Service\DocumentProcessor:
+        arguments:
+            $deepSeekAnalyzer: '@App\Service\DeepSeekAnalyzer'
+            $uploadsDirectory: '%app.uploads_directory%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
