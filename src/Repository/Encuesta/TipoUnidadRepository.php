@@ -71,8 +71,11 @@ class TipoUnidadRepository extends ServiceEntityRepository
 
     public function findList()
     {
-
+        $entityManagerDefault = $this->getEntityManager();
+        $empresa= $entityManagerDefault->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
+        
         $data= $this->createQueryBuilder('c')
+            ->where('c.idempresa ='.$empresa->getId())
             ->orderBy('c.id', 'ASC')
             ->getQuery()
             ->getResult()
