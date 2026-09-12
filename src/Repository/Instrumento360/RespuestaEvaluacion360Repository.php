@@ -85,19 +85,34 @@ class RespuestaEvaluacion360Repository extends ServiceEntityRepository
             }
         }
 
+        $empresa = null;
+        if ($currentUser->getIdempresa()) {
+            $empresa = $entityManager->getRepository(Empresa::class)->find($currentUser->getIdempresa());
+        }
+
         if (!$instrumentoUsuario) {
-            return new JsonResponse(['msg' => 'No existe asignación para evaluar a este usuario'], 404);
+            $instrumentoUsuario = new Instrumento360UsuariosAsignados();
+            $instrumentoUsuario->setInstrumento360($instrumento);
+            $instrumentoUsuario->setUser($userEvaluado);
+            $instrumentoUsuario->setUserEvaluador($currentUser);
+            $instrumentoUsuario->setUnidadUser($userEvaluado->getIdestructura());
+            $instrumentoUsuario->setUnidadEvaluador($currentUser->getIdestructura());
+            $instrumentoUsuario->setCargoUser($userEvaluado->getIdCargo());
+            $instrumentoUsuario->setCargoEvaluador($currentUser->getIdCargo());
+            if ($empresa) {
+                $instrumentoUsuario->setEmpresa($empresa);
+            }
+            $instrumentoUsuario->setRespondida(0);
+            $instrumentoUsuario->setCreateAt(new \DateTime());
+            $instrumentoUsuario->setCreateBy($currentUser->getUserName());
+            $instrumentoUsuario->setUpdateBy($currentUser->getUserName());
+            $entityManager->persist($instrumentoUsuario);
         }
 
         if ((int) $instrumentoUsuario->getRespondida() === 1) {
             return new JsonResponse([
                 'msg' => 'La evaluación ya fue respondida por el evaluador: ' . $currentUser->getUserName(),
             ], 409);
-        }
-
-        $empresa = null;
-        if ($this->security->getUser()->getIdempresa()) {
-            $empresa = $entityManager->getRepository(Empresa::class)->find($this->security->getUser()->getIdempresa());
         }
 
         $lastEntityId = null;
