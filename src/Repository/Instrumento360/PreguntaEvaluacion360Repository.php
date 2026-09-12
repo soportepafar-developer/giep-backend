@@ -138,7 +138,12 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             $preguntaDto->obligatorio = $valor->getObligatorio();
             $preguntaDto->orden = $valor->getOrden();
             $preguntaDto->idInput = ($valor->getIdInput() != null) ? array("id" => $valor->getIdInput()->getId(), "Descripcion" => $valor->getIdInput()->getNombre()) : [];
-            $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array("id" => $valor->getIdCategoria()->getId(), "Descripcion" => $valor->getIdCategoria()->getNombre(), "Descripcion2" => $valor->getIdCategoria()->getDescripcion()) : null;
+            $preguntaDto->Competencia360 = ($valor->getIdCategoria() != null) ? array(
+                "id" => $valor->getIdCategoria()->getId(),
+                "Descripcion" => $valor->getIdCategoria()->getNombre(),
+                "Descripcion2" => $valor->getIdCategoria()->getDescripcion(),
+                "Tipo" => $valor->getIdCategoria()->getTipo()
+            ) : null;
             $preguntaDto->puntos = $valor->getPuntos();
             $preguntaDto->idInstrumento = ($valor->getIdInstrumento() != null) ? array("id" => $valor->getIdInstrumento()->getId(), "Descripcion" => $valor->getIdInstrumento()->getNombre()) : [];
             $opciones = [];
@@ -164,6 +169,39 @@ class PreguntaEvaluacion360Repository extends ServiceEntityRepository
             $preguntaDto->createBy = $valor->getCreateBy();
             $dataPregunta[] = $preguntaDto;
         }
+
+        // Sin duplicados + orden: Cardinales primero, luego Técnicas, luego por orden
+        $seen = [];
+        $dataPregunta = array_values(array_filter($dataPregunta, function ($p) use (&$seen) {
+            $id = is_object($p) ? $p->id : ($p['id'] ?? null);
+            if ($id === null || isset($seen[$id])) {
+                return false;
+            }
+            $seen[$id] = true;
+            return true;
+        }));
+        usort($dataPregunta, function ($a, $b) {
+            $tipoA = is_object($a) ? ($a->Competencia360['Tipo'] ?? '') : ($a['Competencia360']['Tipo'] ?? '');
+            $tipoB = is_object($b) ? ($b->Competencia360['Tipo'] ?? '') : ($b['Competencia360']['Tipo'] ?? '');
+            $rank = function ($tipo) {
+                $t = strtolower((string)$tipo);
+                if ($t === 'cardinal') {
+                    return 0;
+                }
+                if ($t === 'tecnica' || $t === 'técnica') {
+                    return 1;
+                }
+                return 2;
+            };
+            $byTipo = $rank($tipoA) - $rank($tipoB);
+            if ($byTipo !== 0) {
+                return $byTipo;
+            }
+            $ordenA = is_object($a) ? (int)$a->orden : (int)($a['orden'] ?? 0);
+            $ordenB = is_object($b) ? (int)$b->orden : (int)($b['orden'] ?? 0);
+            return $ordenA - $ordenB;
+        });
+
         return $dataPregunta;
     }
 

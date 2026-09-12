@@ -536,7 +536,8 @@ function putSecciones($data,$id){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$id;
+                        AND b.instrumento360_id = ".$id."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
 
                         $conn = $this->getEntityManager()->getConnection();
@@ -757,6 +758,7 @@ public function findListByInstructor($data){
             ->where('asignado.respondida = 0')
             ->andWhere('i.id = :instrumentoId')
             ->andWhere('asignado.user = :authUser')
+            ->andWhere('asignado.userEvaluador = :authUser')
             ->setParameter('instrumentoId', $valor->getId())
             ->setParameter('authUser', $this->security->getUser()->getId())
             ->orderBy('i.id', 'ASC')
@@ -803,7 +805,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$valor->getId();
+                        AND b.instrumento360_id = ".$valor->getId()."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
                         
                         $conn = $this->getEntityManager()->getConnection();
@@ -1001,7 +1004,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$valor->getId();
+                        AND b.instrumento360_id = ".$valor->getId()."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
                         $conn = $this->getEntityManager()->getConnection();
                         $stmt = $conn->prepare($sqlUser);
@@ -1236,7 +1240,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$valor->getId();
+                        AND b.instrumento360_id = ".$valor->getId()."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
                         $conn = $this->getEntityManager()->getConnection();
                         $stmt = $conn->prepare($sqlUser);
@@ -1479,7 +1484,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$valor->getId();
+                        AND b.instrumento360_id = ".$valor->getId()."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
                         $conn = $this->getEntityManager()->getConnection();
                         $stmt = $conn->prepare($sqlUser);
@@ -1913,7 +1919,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$id;
+                        AND b.instrumento360_id = ".$id."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
 
                         $conn = $this->getEntityManager()->getConnection();
@@ -2133,7 +2140,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$id;
+                        AND b.instrumento360_id = ".$id."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
                         $conn = $this->getEntityManager()->getConnection();
                         $stmt = $conn->prepare($sqlUser);
@@ -2181,7 +2189,8 @@ public function findListByInstructor($data){
                         INNER JOIN instrumento360_usuarios_asignados b 
                         ON a.id = b.instrumento360_id 
                         WHERE b.user_id = ".$usuarioAsignado['id_user']." 
-                        AND b.instrumento360_id = ".$id;
+                        AND b.instrumento360_id = ".$id."
+                        AND b.user_evaluador_id = ".$this->security->getUser()->getId();
 
                         $conn = $this->getEntityManager()->getConnection();
                         $stmt = $conn->prepare($sqlUser);
@@ -2553,11 +2562,12 @@ public function findListByInstructor($data){
             FROM instrumento360 i
             JOIN pregunta_evaluacion360 p ON i.id = p.id_instrumento_id
             JOIN competencia360 c ON c.id = p.id_categoria_id
-            JOIN seccion_evaluacion360 sc ON sc.instrumento360_id = i.id 
+            JOIN seccion_evaluacion360 sc ON sc.id = p.seccion_id
             JOIN instrumento360_usuarios_asignados iu ON i.id = iu.instrumento360_id
             WHERE c.tipo = 'Cardinal' 
               AND i.id = :instrumentoId 
-              AND iu.user_id = :idUser";
+              AND iu.user_id = :idUser
+            ORDER BY sc.orden ASC, p.orden ASC";
 
     $conn = $entityManager->getConnection();
     $stmt = $conn->prepare($sql);
@@ -2578,33 +2588,9 @@ public function findListByInstructor($data){
     }
  
     // Eliminar duplicados
-    $idpreguntaft_unicos = array_unique($idpreguntaft);
-
-    // Si deseas reindexar el array, puedes usar array_values
-    $idpreguntaft_unicos = array_values($idpreguntaft_unicos);
-    $idpreguntaft = $idpreguntaft_unicos;
+    $idpreguntaft = array_values(array_unique($idpreguntaft));
     
-     $tipo = utf8_encode("Tecnica"); 
-     /* $PreguntasTecnicas = "select
-                c.id as id_competencia360, 
-                c.empresa_id, 
-                c.nombre as nombrecompetencia, 
-                c.descripcion, 
-                c.tipo, 
-                c.escala_ponderacion,
-                cu.unidad_id,
-                cu.cargo_id,
-                p.id as idpregunta,
-                p.seccion_id,
-                p.pregunta,
-                p.orden,
-                sc.instrumento360_id
-            from pafarco1_giep_stage_360.competencia360 c
-            JOIN pafarco1_giep_stage_360.competencia_cargo_unidad cu ON cu.competencia_id = c.id
-            JOIN pafarco1_giep_stage_360.pregunta_evaluacion360 p ON p.id_categoria_id = c.id
-            JOIN pafarco1_giep_stage_360.seccion_evaluacion360 sc ON sc.id = p.seccion_id
-            WHERE c.tipo ='". $tipo ."' AND cu.unidad_id = ".$id_unidad_usuario." AND cu.cargo_id = ".$cargoUsuario." AND p.seccion_id = ".$seccionId."  "; */
-
+     $tipo = "Tecnica"; 
 
             $PreguntasTecnicas = "select
                 c.id as id_competencia360, 
@@ -2624,19 +2610,28 @@ public function findListByInstructor($data){
             JOIN competencia_cargo_unidad cu ON cu.competencia_id = c.id
             JOIN pregunta_evaluacion360 p ON p.id_categoria_id = c.id
             JOIN seccion_evaluacion360 sc ON sc.id = p.seccion_id
-            WHERE c.tipo ='". $tipo ."' AND cu.unidad_id = ".$id_unidad_usuario." AND cu.cargo_id = ".$cargoUsuario."  ";
+            WHERE c.tipo = :tipo
+              AND cu.unidad_id = :unidadId
+              AND cu.cargo_id = :cargoId
+              AND p.id_instrumento_id = :instrumentoId
+            ORDER BY p.orden ASC";
             
                $conn2 = $this->getEntityManager()->getConnection();
                 $stmt2 = $conn2->prepare($PreguntasTecnicas);
-                $stmt2->execute();
+                $stmt2->execute([
+                    'tipo' => $tipo,
+                    'unidadId' => $id_unidad_usuario,
+                    'cargoId' => $cargoUsuario,
+                    'instrumentoId' => $instrumentoId,
+                ]);
                 $dataPreguntasTecnicas=$stmt2->fetchAll();
-
-           // $dataEvaluacion=null;
 
         foreach($dataPreguntasTecnicas as $clave2 => $valor3){
             $idpreguntaft[] = $valor3['idpregunta'];
-        }  
-        
+        }
+
+    // Sin preguntas repetidas (cardinal + técnica)
+    $idpreguntaft = array_values(array_unique($idpreguntaft));
 
     $secciones = [];
     foreach ($dataUserRespondidaCardinal as $valor2) {
@@ -2649,12 +2644,12 @@ public function findListByInstructor($data){
             $secciones[] = [
                 "id"          => $seccionId,
                 "nombre"      => $valor2['nombre'],  
-                "descripcion" => $valor2['descripcion'],  // 👈 sin tilde
+                "descripcion" => $valor2['descripcion'],
                 "orden"       => $valor2['ordenseccion'],
                 "preguntas"   => $preguntas
             ];
         }
-        break; // 👈 ojo: esto corta el loop en la primera iteración
+        break; // una sección por evaluación (cardinales + técnicas en el mismo bloque)
     }
 
     return new JsonResponse(['secciones' => $secciones], 200);

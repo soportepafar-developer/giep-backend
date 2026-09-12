@@ -65,18 +65,24 @@ class RespuestaEvaluacion360Repository extends ServiceEntityRepository
             return new JsonResponse(['msg' => 'No existe el usuario evaluado'], 404);
         }
 
+        // respondida es por evaluador: solo la fila instrumento + evaluado + evaluador actual
         $instrumentoUsuario = $entityManager->getRepository(Instrumento360UsuariosAsignados::class)->findOneBy([
             'instrumento360' => $instrumento,
             'user' => $userEvaluado,
             'userEvaluador' => $currentUser,
         ]);
 
-        // Fallback: asignaciones antiguas con userEvaluador mal grabado (bug asignar)
+        // Legacy: asignación sin evaluador (null) — se atribuye al evaluador actual
         if ($instrumentoUsuario === null) {
-            $instrumentoUsuario = $entityManager->getRepository(Instrumento360UsuariosAsignados::class)->findOneBy([
+            $legacy = $entityManager->getRepository(Instrumento360UsuariosAsignados::class)->findOneBy([
                 'instrumento360' => $instrumento,
                 'user' => $userEvaluado,
+                'userEvaluador' => null,
             ]);
+            if ($legacy !== null) {
+                $legacy->setUserEvaluador($currentUser);
+                $instrumentoUsuario = $legacy;
+            }
         }
 
         if (!$instrumentoUsuario) {
@@ -110,18 +116,22 @@ class RespuestaEvaluacion360Repository extends ServiceEntityRepository
             foreach ($valueQuestion['response'] as $value) {
                 $idOption = isset($value['idOption']) ? $value['idOption'] : null;
 
-                $exists = $entityManager->getRepository(RespuestaEvaluacion360::class)->findOneBy([
+                // Anti-dup por evaluador (createBy = username del evaluador actual)
+                $existsCriteria = [
                     'idUser' => $userEvaluado,
                     'idPregunta' => $entityPregunta,
-                    'idOpcion' => $idOption != null
-                        ? $entityManager->getRepository(OpcionesEvaluacion360::class)->find($idOption)
-                        : null,
-                ]);
+                    'createBy' => $currentUser->getUserName(),
+                ];
+                if ($idOption != null) {
+                    $existsCriteria['idOpcion'] = $entityManager->getRepository(OpcionesEvaluacion360::class)->find($idOption);
+                }
+                $exists = $entityManager->getRepository(RespuestaEvaluacion360::class)->findOneBy($existsCriteria);
 
                 if ($exists === null && ($idOption === null || $idOption === '')) {
                     $exists = $entityManager->getRepository(RespuestaEvaluacion360::class)->findOneBy([
                         'idUser' => $userEvaluado,
                         'idPregunta' => $entityPregunta,
+                        'createBy' => $currentUser->getUserName(),
                     ]);
                 }
 
