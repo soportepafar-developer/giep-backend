@@ -1617,7 +1617,9 @@ public function findListByInstructor($data){
             //$epp = $valor->getInstrumento360UsuariosAsignados()->getUserEvaluador();
 
             //******  Usuarios ************/ 
-            $qb="";
+            $qb = null;
+            $datosUsuarios = [];
+            $contSinResp = 0;
             //Supervisorio Descendente
            if($valor->getTipoInstrumento()->getId() ==1){ 
                 $usuariosFiltrados = $this->getUsuariosSupervisorioDescendente($this->security->getUser());
@@ -2011,6 +2013,9 @@ public function findListByInstructor($data){
                   }
                 }
 
+            // Solo re-ejecutar $qb si es QueryBuilder (p.ej. pares).
+            // Tipos 1/4 ya llenaron $datosUsuarios vía getUsuariosSupervisorio*.
+            if ($qb instanceof \Doctrine\ORM\QueryBuilder) {
                    $usuariosFiltrados = $qb->getQuery()->getResult();
                   $datosUsuarios = [];
                   $contSinResp=0;
@@ -2061,7 +2066,8 @@ public function findListByInstructor($data){
                             'roles'   => $rolesArray
                         ]; */
                     }
-                } 
+                }
+            }
 
             //************************** */
             $instrumentoDto =new Instrumento360OutPutDto();
@@ -2153,8 +2159,10 @@ public function findListByInstructor($data){
                         $instrumentoDto->evaluatorFullName=($asignado->getUserEvaluador()!=null)?$asignado->getUserEvaluador()->getPrimerNombre()." ".$asignado->getUserEvaluador()->getSegundoNombre()." ".$asignado->getUserEvaluador()->getPrimerApellido():null;
                         $instrumentoDto->evaluatorEmail=($asignado->getUserEvaluador()!=null)?$asignado->getUserEvaluador()->getEmail():null; */
 
-                        $usersData[]=array("id"=>$instrumentosuser->getUserEvaluador()->getId(),"nombre"=>$instrumentosuser->getUserEvaluador()->getPrimerNombre(). " ".$instrumentosuser->getUserEvaluador()->getPrimerApellido(),"email"=>$instrumentosuser->getUserEvaluador()->getEmail()
-                        ,"respondida"=>$instrumentosuser->getRespondida(),"roles"=>$instrumentosuser->getUserEvaluador()->getRoles());                       
+                        if ($instrumentosuser->getUserEvaluador() !== null) {
+                            $usersData[]=array("id"=>$instrumentosuser->getUserEvaluador()->getId(),"nombre"=>$instrumentosuser->getUserEvaluador()->getPrimerNombre(). " ".$instrumentosuser->getUserEvaluador()->getPrimerApellido(),"email"=>$instrumentosuser->getUserEvaluador()->getEmail()
+                            ,"respondida"=>$instrumentosuser->getRespondida(),"roles"=>$instrumentosuser->getUserEvaluador()->getRoles());
+                        }
                 }
             }  
 
