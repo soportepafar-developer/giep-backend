@@ -704,9 +704,11 @@ public function findAllPage($data){
      * Pueden existir GG bajo Presidencia o Coordinaciones bajo GG.
      *
      * Reglas:
-     * - Estratégicos (cargos 1, 2, 3, 4, 5, 55): solo unidades hijas directas.
+     * - Estratégicos (cargos 1, 2, 3, 4, 55): solo unidades hijas directas.
      *   En cada hija, 1 usuario activo con cargo_id > cargo del evaluador (el jefe de esa unidad).
      *   No se buscan subordinados en la misma unidad.
+     * - Coordinador (cargo 5): Supervisores (cargo 6) de su misma coordinación,
+     *   más 1 jefe por unidad hija directa (si existiera).
      * - Supervisor (cargo 6): misma unidad + unidades hijas, solo operativos (cargo > 6).
      * - Operativo (cargo > 6): sin subordinados.
      */
@@ -767,11 +769,37 @@ public function findAllPage($data){
             return $qb->getQuery()->getResult();
         }
 
-        // Estratégicos (1..5, 55): solo hijas directas, 1 jefe por hija (cargo > evaluador)
+        // Estratégicos (1..5, 55)
         if (!in_array($cargoEvaluador, $cargosEstrategicos, true)) {
             return [];
         }
 
+        // Coordinador (5): Supervisores (6) de la misma coordinación
+        if ($cargoEvaluador == 5) {
+            $qbSup = $em->createQueryBuilder();
+            $qbSup->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
+                            c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                            e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+                  ->from('App\Entity\User', 'u')
+                  ->innerJoin('u.idCargo', 'c')
+                  ->innerJoin('u.idestructura', 'e')
+                  ->where('e.id = :miUnidad')
+                  ->andWhere('u.idStatus = 1')
+                  ->andWhere('u.id != :miId')
+                  ->andWhere('c.id = 6')
+                  ->setParameter('miUnidad', $miUnidad)
+                  ->setParameter('miId', $user->getId())
+                  ->orderBy('u.primerNombre', 'ASC');
+
+            foreach ($qbSup->getQuery()->getResult() as $sup) {
+                if (!isset($idsRegistrados[$sup['id_user']])) {
+                    $subordinados[] = $sup;
+                    $idsRegistrados[$sup['id_user']] = true;
+                }
+            }
+        }
+
+        // Hijas directas: 1 jefe por hija (cargo > evaluador) — aplica a todos los estratégicos
         foreach ($hijasIds as $hijaId) {
             $qbHija = $em->createQueryBuilder();
             $qbHija->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
