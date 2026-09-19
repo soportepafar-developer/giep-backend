@@ -699,13 +699,16 @@ public function findAllPage($data){
 
     /**
      * Obtiene los colaboradores subordinados para evaluación Supervisoria Descendente (tipo 1).
+     *
+     * Manda el organigrama (padre_id), no una cadena fija Presidencia→VP→GG→GL→Coord.
+     * Pueden existir GG bajo Presidencia o Coordinaciones bajo GG.
+     *
      * Reglas:
-     * - Si es Presidente (cargo 1): evalúa a Vicepresidentes (cargos 2, 55).
-     * - Si es cargo supervisorio/directivo (cargos 2, 3, 4, 5, 6, 55):
-     *     a) Unidades hijas directas: evalúa al jefe de cada unidad hija (cargos 2, 3, 4, 5, 6 con cargo > evaluador).
-     *        Permite que una Gerencia General (3) evalúe a sus Gerentes de Línea (4) y a Coordinadores adscritos directos (5).
-     *     b) Misma unidad: evalúa a colaboradores directos subordinados en su unidad (cargo > evaluador, no otros directivos).
-     * - Si es operativo (cargo > 6): no tiene personal subordinado a cargo.
+     * - Estratégicos (cargos 1, 2, 3, 4, 5, 55): solo unidades hijas directas.
+     *   En cada hija, 1 usuario activo con cargo_id > cargo del evaluador (el jefe de esa unidad).
+     *   No se buscan subordinados en la misma unidad.
+     * - Supervisor (cargo 6): misma unidad + unidades hijas, solo operativos (cargo > 6).
+     * - Operativo (cargo > 6): sin subordinados.
      */
     private function getUsuariosSupervisorioDescendente($user): array
     {
@@ -717,11 +720,34 @@ public function findAllPage($data){
             return [];
         }
 
+        // Operativos: sin personal a cargo
+        if ($cargoEvaluador > 6) {
+            return [];
+        }
+
         $subordinados = [];
         $idsRegistrados = [];
+        $cargosEstrategicos = [1, 2, 3, 4, 5, 55];
 
-        // 1. Caso Presidente (cargo 1)
-        if ($cargoEvaluador == 1) {
+        $hijasIds = array_column(
+            $em->createQueryBuilder()
+                ->select('e.id')
+                ->from('App\Entity\EstructuraOrganizativa', 'e')
+                ->where('e.padre_id = :miUnidad')
+                ->andWhere('e.id != :miUnidad')
+                ->setParameter('miUnidad', $miUnidad)
+                ->getQuery()
+                ->getScalarResult(),
+            'id'
+        );
+
+        // Supervisor (6): misma unidad + hijas, solo operativos (cargo > 6)
+        if ($cargoEvaluador == 6) {
+            $unidadesBusqueda = array_values(array_unique(array_merge([$miUnidad], $hijasIds)));
+            if (empty($unidadesBusqueda)) {
+                return [];
+            }
+
             $qb = $em->createQueryBuilder();
             $qb->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
                          c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
@@ -729,93 +755,48 @@ public function findAllPage($data){
                ->from('App\Entity\User', 'u')
                ->innerJoin('u.idCargo', 'c')
                ->innerJoin('u.idestructura', 'e')
-               ->where('u.idStatus = 1')
+               ->where('e.id IN (:unidades)')
+               ->andWhere('u.idStatus = 1')
                ->andWhere('u.id != :miId')
-               ->andWhere('c.id IN (:cargosVp)')
+               ->andWhere('c.id > 6')
+               ->setParameter('unidades', $unidadesBusqueda)
                ->setParameter('miId', $user->getId())
-               ->setParameter('cargosVp', [2, 55])
-               ->orderBy('c.nivel', 'ASC');
+               ->orderBy('c.nivel', 'ASC')
+               ->addOrderBy('u.primerNombre', 'ASC');
+
             return $qb->getQuery()->getResult();
         }
 
-        // Cargos con rol supervisorio/directivo (Vicepresidente 2, GG 3, GL 4, Coordinador 5, Supervisor 6, VP Adjunto 55)
-        $cargosJefatura = [2, 3, 4, 5, 6, 55];
+        // Estratégicos (1..5, 55): solo hijas directas, 1 jefe por hija (cargo > evaluador)
+        if (!in_array($cargoEvaluador, $cargosEstrategicos, true)) {
+            return [];
+        }
 
-        if (in_array($cargoEvaluador, $cargosJefatura)) {
-            // A. Buscar jefes de unidades hijas directas
-            $unidadesHijas = $em->createQueryBuilder()
-                ->select('e.id')
-                ->from('App\Entity\EstructuraOrganizativa', 'e')
-                ->where('e.padre_id = :miUnidad')
-                ->andWhere('e.id != :miUnidad')
-                ->setParameter('miUnidad', $miUnidad)
-                ->getQuery()
-                ->getScalarResult();
+        foreach ($hijasIds as $hijaId) {
+            $qbHija = $em->createQueryBuilder();
+            $qbHija->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
+                            c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                            e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+                   ->from('App\Entity\User', 'u')
+                   ->innerJoin('u.idCargo', 'c')
+                   ->innerJoin('u.idestructura', 'e')
+                   ->where('e.id = :hijaId')
+                   ->andWhere('u.idStatus = 1')
+                   ->andWhere('u.id != :miId')
+                   ->andWhere('c.id > :miCargo')
+                   ->setParameter('hijaId', $hijaId)
+                   ->setParameter('miId', $user->getId())
+                   ->setParameter('miCargo', $cargoEvaluador)
+                   ->orderBy('c.nivel', 'ASC')
+                   ->addOrderBy('c.id', 'ASC')
+                   ->setMaxResults(1);
 
-            $hijasIds = array_column($unidadesHijas, 'id');
-
-            foreach ($hijasIds as $hijaId) {
-                // Buscar el responsable/jefe de mayor jerarquía en la unidad hija
-                $qbHija = $em->createQueryBuilder();
-                $qbHija->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
-                                c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
-                                e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
-                       ->from('App\Entity\User', 'u')
-                       ->innerJoin('u.idCargo', 'c')
-                       ->innerJoin('u.idestructura', 'e')
-                       ->where('e.id = :hijaId')
-                       ->andWhere('u.idStatus = 1')
-                       ->andWhere('u.id != :miId')
-                       ->andWhere('c.id > :miCargo')
-                       ->andWhere('c.id IN (:cargosHijos)')
-                       ->setParameter('hijaId', $hijaId)
-                       ->setParameter('miId', $user->getId())
-                       ->setParameter('miCargo', $cargoEvaluador)
-                       ->setParameter('cargosHijos', [2, 3, 4, 5, 6])
-                       ->orderBy('c.nivel', 'ASC')
-                       ->addOrderBy('c.id', 'ASC')
-                       ->setMaxResults(1);
-
-                $jefeHija = $qbHija->getQuery()->getResult();
-                if (!empty($jefeHija)) {
-                    $uHija = $jefeHija[0];
-                    if (!isset($idsRegistrados[$uHija['id_user']])) {
-                        $subordinados[] = $uHija;
-                        $idsRegistrados[$uHija['id_user']] = true;
-                    }
-                }
-            }
-
-            // B. Colaboradores subordinados dentro de su misma unidad
-            $qbMisma = $em->createQueryBuilder();
-            $qbMisma->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
-                             c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
-                             e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
-                    ->from('App\Entity\User', 'u')
-                    ->innerJoin('u.idCargo', 'c')
-                    ->innerJoin('u.idestructura', 'e')
-                    ->where('e.id = :miUnidad')
-                    ->andWhere('u.idStatus = 1')
-                    ->andWhere('u.id != :miId')
-                    ->andWhere('c.id > :miCargo')
-                    ->setParameter('miUnidad', $miUnidad)
-                    ->setParameter('miId', $user->getId())
-                    ->setParameter('miCargo', $cargoEvaluador);
-
-            // Si es GG (3), no toma Gerentes de Línea en la misma unidad
-            if ($cargoEvaluador == 3) {
-                $qbMisma->andWhere('c.id NOT IN (2, 3, 4)');
-            } elseif ($cargoEvaluador == 4) {
-                $qbMisma->andWhere('c.id NOT IN (2, 3, 4, 5)');
-            }
-
-            $qbMisma->orderBy('c.nivel', 'ASC')->addOrderBy('u.primerNombre', 'ASC');
-            $colabsMisma = $qbMisma->getQuery()->getResult();
-
-            foreach ($colabsMisma as $colab) {
-                if (!isset($idsRegistrados[$colab['id_user']])) {
-                    $subordinados[] = $colab;
-                    $idsRegistrados[$colab['id_user']] = true;
+            $jefeHija = $qbHija->getQuery()->getResult();
+            if (!empty($jefeHija)) {
+                $uHija = $jefeHija[0];
+                if (!isset($idsRegistrados[$uHija['id_user']])) {
+                    $subordinados[] = $uHija;
+                    $idsRegistrados[$uHija['id_user']] = true;
                 }
             }
         }
@@ -825,12 +806,14 @@ public function findAllPage($data){
 
     /**
      * Obtiene el supervisor directo para evaluación Supervisoria Ascendente (tipo 4).
+     *
      * Reglas:
-     * - Si es Presidente (cargo 1): no tiene supervisor ascendente.
-     * - Si es operativo (cargo > 5): primero busca supervisor en su misma unidad (cargos 4, 5, 6).
-     * - Si no hay supervisor en su unidad, o si es directivo (cargo 2..5):
-     *   Busca en la unidad padre directa el jefe de mayor jerarquía activo (cargo < evaluador).
-     *   Si la unidad padre no tiene jefe, escala jerárquicamente a la unidad abuelo (padre de la padre).
+     * - Presidente (cargo 1): sin supervisor.
+     * - Estratégicos (2, 3, 4, 5, 55): solo unidad padre; 1 usuario con cargo_id < evaluador.
+     *   No busca jefe en la misma unidad ni escala al abuelo.
+     * - Supervisor (cargo 6): solo Coordinador (cargo 5) de su misma coordinación.
+     * - Operativo (cargo > 6): jefe en la misma unidad (p.ej. GG, GL, Coord, Supervisor),
+     *   cargo_id < evaluador. Permite que apoyo en despacho de GG evalúe a la GG.
      */
     private function getUsuariosSupervisorioAscendente($user): array
     {
@@ -842,87 +825,77 @@ public function findAllPage($data){
             return [];
         }
 
-        // Si es cargo operativo (> 5, ej. Experto, Especialista, Apoyo Técnico)
-        if ($cargoEvaluador > 5) {
-            $qbMisma = $em->createQueryBuilder();
-            $qbMisma->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
-                             c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
-                             e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
-                    ->from('App\Entity\User', 'u')
-                    ->innerJoin('u.idCargo', 'c')
-                    ->innerJoin('u.idestructura', 'e')
-                    ->where('e.id = :miUnidad')
-                    ->andWhere('u.idStatus = 1')
-                    ->andWhere('u.id != :miId')
-                    ->andWhere('c.id IN (:cargosSupervisores)')
-                    ->setParameter('miUnidad', $miUnidad)
-                    ->setParameter('miId', $user->getId())
-                    ->setParameter('cargosSupervisores', [4, 5, 6])
-                    ->orderBy('c.nivel', 'ASC')
-                    ->addOrderBy('c.id', 'ASC')
-                    ->setMaxResults(1);
+        $selectUser = 'u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
+                       c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                       e.id AS id_estructura, e.estructura_organizativa, e.jerarquia';
 
-            $jefeMisma = $qbMisma->getQuery()->getResult();
-            if (!empty($jefeMisma)) {
-                return $jefeMisma;
-            }
+        // Supervisor (6): solo el Coordinador de la misma coordinación
+        if ($cargoEvaluador == 6) {
+            $qb = $em->createQueryBuilder();
+            $qb->select($selectUser)
+               ->from('App\Entity\User', 'u')
+               ->innerJoin('u.idCargo', 'c')
+               ->innerJoin('u.idestructura', 'e')
+               ->where('e.id = :miUnidad')
+               ->andWhere('u.idStatus = 1')
+               ->andWhere('u.id != :miId')
+               ->andWhere('c.id = 5')
+               ->setParameter('miUnidad', $miUnidad)
+               ->setParameter('miId', $user->getId())
+               ->orderBy('c.nivel', 'ASC')
+               ->addOrderBy('c.id', 'ASC')
+               ->setMaxResults(1);
+
+            return $qb->getQuery()->getResult();
         }
 
-        // Si no se encontró en la misma unidad, o es directivo (cargos 2, 3, 4, 5):
-        // Buscar en la unidad padre directa, y si no hay jefe, escalar a los abuelos
-        $unidadActual = $em->getRepository('App\Entity\EstructuraOrganizativa')->find($miUnidad);
-        $visitadas = [];
+        // Operativo (> 6): jefe en la misma unidad (incluye GG/VP/Presidente si aplica)
+        if ($cargoEvaluador > 6) {
+            $qb = $em->createQueryBuilder();
+            $qb->select($selectUser)
+               ->from('App\Entity\User', 'u')
+               ->innerJoin('u.idCargo', 'c')
+               ->innerJoin('u.idestructura', 'e')
+               ->where('e.id = :miUnidad')
+               ->andWhere('u.idStatus = 1')
+               ->andWhere('u.id != :miId')
+               ->andWhere('c.id < :miCargo')
+               ->andWhere('c.id IN (:cargosJefe)')
+               ->setParameter('miUnidad', $miUnidad)
+               ->setParameter('miId', $user->getId())
+               ->setParameter('miCargo', $cargoEvaluador)
+               ->setParameter('cargosJefe', [1, 2, 3, 4, 5, 6, 55])
+               ->orderBy('c.nivel', 'ASC')
+               ->addOrderBy('c.id', 'ASC')
+               ->setMaxResults(1);
 
-        while ($unidadActual && $unidadActual->getPadreId() && !isset($visitadas[$unidadActual->getId()])) {
-            $visitadas[$unidadActual->getId()] = true;
-            $padreId = $unidadActual->getPadreId();
-
-            if ($padreId == $unidadActual->getId()) {
-                break;
-            }
-
-            $padreEntidad = $em->getRepository('App\Entity\EstructuraOrganizativa')->find($padreId);
-            if (!$padreEntidad) {
-                break;
-            }
-
-            // Buscar jefe activo en la unidad padre con menor id_cargo (mayor jerarquía)
-            $cargosJefaturaValidos = [1, 2, 3, 4, 5, 55];
-            $qbPadre = $em->createQueryBuilder();
-            $qbPadre->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
-                             c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
-                             e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
-                    ->from('App\Entity\User', 'u')
-                    ->innerJoin('u.idCargo', 'c')
-                    ->innerJoin('u.idestructura', 'e')
-                    ->where('e.id = :padreId')
-                    ->andWhere('u.idStatus = 1')
-                    ->andWhere('u.id != :miId')
-                    ->andWhere('c.id < :miCargo')
-                    ->andWhere('c.id IN (:cargosValidos)')
-                    ->setParameter('padreId', $padreId)
-                    ->setParameter('miId', $user->getId())
-                    ->setParameter('miCargo', $cargoEvaluador)
-                    ->setParameter('cargosValidos', $cargosJefaturaValidos)
-                    ->orderBy('c.nivel', 'ASC')
-                    ->addOrderBy('c.id', 'ASC')
-                    ->setMaxResults(1);
-
-            $jefePadre = $qbPadre->getQuery()->getResult();
-            if (!empty($jefePadre)) {
-                return $jefePadre;
-            }
-
-            // Si es la Presidencia (padre_id = 1), no se escala más arriba
-            if ($padreId == 1) {
-                break;
-            }
-
-            // Escalar a la unidad abuelo
-            $unidadActual = $padreEntidad;
+            return $qb->getQuery()->getResult();
         }
 
-        return [];
+        // Estratégicos (2, 3, 4, 5, 55): solo unidad padre, un jefe con cargo < evaluador
+        $unidad = $em->getRepository('App\Entity\EstructuraOrganizativa')->find($miUnidad);
+        if (!$unidad || !$unidad->getPadreId() || $unidad->getPadreId() == $unidad->getId()) {
+            return [];
+        }
+
+        $padreId = $unidad->getPadreId();
+        $qbPadre = $em->createQueryBuilder();
+        $qbPadre->select($selectUser)
+                ->from('App\Entity\User', 'u')
+                ->innerJoin('u.idCargo', 'c')
+                ->innerJoin('u.idestructura', 'e')
+                ->where('e.id = :padreId')
+                ->andWhere('u.idStatus = 1')
+                ->andWhere('u.id != :miId')
+                ->andWhere('c.id < :miCargo')
+                ->setParameter('padreId', $padreId)
+                ->setParameter('miId', $user->getId())
+                ->setParameter('miCargo', $cargoEvaluador)
+                ->orderBy('c.nivel', 'ASC')
+                ->addOrderBy('c.id', 'ASC')
+                ->setMaxResults(1);
+
+        return $qbPadre->getQuery()->getResult();
     }
 
 public function findListByInstructor($data){
