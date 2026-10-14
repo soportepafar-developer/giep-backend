@@ -704,12 +704,13 @@ public function findAllPage($data){
      * Pueden existir GG bajo Presidencia o Coordinaciones bajo GG.
      *
      * Reglas:
-     * - Estratégicos (cargos 1, 2, 3, 4, 55): solo unidades hijas directas.
-     *   En cada hija, 1 usuario activo con cargo_id > cargo del evaluador (el jefe de esa unidad).
-     *   No se buscan subordinados en la misma unidad.
-     * - Coordinador (cargo 5): Supervisores (cargo 6) de su misma coordinación,
-     *   más 1 jefe por unidad hija directa (si existiera).
-     * - Supervisor (cargo 6): misma unidad + unidades hijas, solo operativos (cargo > 6).
+     * - Estratégicos (cargos 1, 2, 3, 4 y 55): 1 jefe por unidad hija directa
+     *   (cargo_id > evaluador). Presidente, VP, GG y GL además evalúan a los
+     *   operativos (cargo > 6, incluye Asesor) de su misma unidad.
+     * - Coordinador (cargo 5): Supervisores (6) de su coordinación. Si no hay
+     *   ninguno, evalúa a los operativos (cargo > 6) de esa misma coordinación.
+     *   Más 1 jefe por unidad hija, si existiera.
+     * - Supervisor (cargo 6): misma unidad + hijas, solo operativos (cargo > 6).
      * - Operativo (cargo > 6): sin subordinados.
      */
     private function getUsuariosSupervisorioDescendente($user): array
@@ -774,12 +775,14 @@ public function findAllPage($data){
             return [];
         }
 
-        // Coordinador (5): Supervisores (6) de la misma coordinación
+        $selectMisma = 'u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
+                        c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
+                        e.id AS id_estructura, e.estructura_organizativa, e.jerarquia';
+
+        // Coordinador (5): supervisores de la misma CD; si no hay, operativos
         if ($cargoEvaluador == 5) {
             $qbSup = $em->createQueryBuilder();
-            $qbSup->select('u.id AS id_user, u.numeroDocumento, u.primerNombre, u.primerApellido, u.username, u.roles,
-                            c.id AS idcargo, c.descripcion AS cargo, IDENTITY(c.nivel) AS id_nivelcargo,
-                            e.id AS id_estructura, e.estructura_organizativa, e.jerarquia')
+            $qbSup->select($selectMisma)
                   ->from('App\Entity\User', 'u')
                   ->innerJoin('u.idCargo', 'c')
                   ->innerJoin('u.idestructura', 'e')
@@ -791,10 +794,53 @@ public function findAllPage($data){
                   ->setParameter('miId', $user->getId())
                   ->orderBy('u.primerNombre', 'ASC');
 
-            foreach ($qbSup->getQuery()->getResult() as $sup) {
-                if (!isset($idsRegistrados[$sup['id_user']])) {
-                    $subordinados[] = $sup;
-                    $idsRegistrados[$sup['id_user']] = true;
+            $supervisores = $qbSup->getQuery()->getResult();
+            $mismoNivel = $supervisores;
+            if (empty($supervisores)) {
+                $qbOp = $em->createQueryBuilder();
+                $qbOp->select($selectMisma)
+                     ->from('App\Entity\User', 'u')
+                     ->innerJoin('u.idCargo', 'c')
+                     ->innerJoin('u.idestructura', 'e')
+                     ->where('e.id = :miUnidad')
+                     ->andWhere('u.idStatus = 1')
+                     ->andWhere('u.id != :miId')
+                     ->andWhere('c.id > 6')
+                     ->setParameter('miUnidad', $miUnidad)
+                     ->setParameter('miId', $user->getId())
+                     ->orderBy('c.id', 'ASC')
+                     ->addOrderBy('u.primerNombre', 'ASC');
+                $mismoNivel = $qbOp->getQuery()->getResult();
+            }
+
+            foreach ($mismoNivel as $persona) {
+                if (!isset($idsRegistrados[$persona['id_user']])) {
+                    $subordinados[] = $persona;
+                    $idsRegistrados[$persona['id_user']] = true;
+                }
+            }
+        }
+
+        // Presidente, VP, GG y GL: operativos adscritos a su misma unidad
+        if (in_array($cargoEvaluador, [1, 2, 3, 4], true)) {
+            $qbOp = $em->createQueryBuilder();
+            $qbOp->select($selectMisma)
+                 ->from('App\Entity\User', 'u')
+                 ->innerJoin('u.idCargo', 'c')
+                 ->innerJoin('u.idestructura', 'e')
+                 ->where('e.id = :miUnidad')
+                 ->andWhere('u.idStatus = 1')
+                 ->andWhere('u.id != :miId')
+                 ->andWhere('c.id > 6')
+                 ->setParameter('miUnidad', $miUnidad)
+                 ->setParameter('miId', $user->getId())
+                 ->orderBy('c.id', 'ASC')
+                 ->addOrderBy('u.primerNombre', 'ASC');
+
+            foreach ($qbOp->getQuery()->getResult() as $persona) {
+                if (!isset($idsRegistrados[$persona['id_user']])) {
+                    $subordinados[] = $persona;
+                    $idsRegistrados[$persona['id_user']] = true;
                 }
             }
         }
@@ -840,8 +886,9 @@ public function findAllPage($data){
      * - Estratégicos (2, 3, 4, 5, 55): solo unidad padre; 1 usuario con cargo_id < evaluador.
      *   No busca jefe en la misma unidad ni escala al abuelo.
      * - Supervisor (cargo 6): solo Coordinador (cargo 5) de su misma coordinación.
-     * - Operativo (cargo > 6): jefe en la misma unidad (p.ej. GG, GL, Coord, Supervisor),
-     *   cargo_id < evaluador. Permite que apoyo en despacho de GG evalúe a la GG.
+     * - Operativo (cargo > 6, incluye Asesor):
+     *   en una coordinación, si hay Supervisor evalúa a ese Supervisor; si no, al Coordinador.
+     *   en unidad estratégica (P/VP/GG/GL), evalúa al jefe de esa misma unidad.
      */
     private function getUsuariosSupervisorioAscendente($user): array
     {
@@ -877,8 +924,48 @@ public function findAllPage($data){
             return $qb->getQuery()->getResult();
         }
 
-        // Operativo (> 6): jefe en la misma unidad (incluye GG/VP/Presidente si aplica)
+        // Operativo (> 6, incluye Asesor 7)
         if ($cargoEvaluador > 6) {
+            $unidadOp = $em->getRepository('App\Entity\EstructuraOrganizativa')->find($miUnidad);
+            $esCoordinacion = $unidadOp && strtoupper((string) $unidadOp->getJerarquia()) === 'CD';
+
+            if ($esCoordinacion) {
+                $qbSup = $em->createQueryBuilder();
+                $qbSup->select($selectUser)
+                      ->from('App\Entity\User', 'u')
+                      ->innerJoin('u.idCargo', 'c')
+                      ->innerJoin('u.idestructura', 'e')
+                      ->where('e.id = :miUnidad')
+                      ->andWhere('u.idStatus = 1')
+                      ->andWhere('u.id != :miId')
+                      ->andWhere('c.id = 6')
+                      ->setParameter('miUnidad', $miUnidad)
+                      ->setParameter('miId', $user->getId())
+                      ->orderBy('c.nivel', 'ASC')
+                      ->addOrderBy('c.id', 'ASC')
+                      ->setMaxResults(1);
+                $supervisor = $qbSup->getQuery()->getResult();
+                if (!empty($supervisor)) {
+                    return $supervisor;
+                }
+
+                $qbCoord = $em->createQueryBuilder();
+                $qbCoord->select($selectUser)
+                        ->from('App\Entity\User', 'u')
+                        ->innerJoin('u.idCargo', 'c')
+                        ->innerJoin('u.idestructura', 'e')
+                        ->where('e.id = :miUnidad')
+                        ->andWhere('u.idStatus = 1')
+                        ->andWhere('u.id != :miId')
+                        ->andWhere('c.id = 5')
+                        ->setParameter('miUnidad', $miUnidad)
+                        ->setParameter('miId', $user->getId())
+                        ->orderBy('c.nivel', 'ASC')
+                        ->addOrderBy('c.id', 'ASC')
+                        ->setMaxResults(1);
+                return $qbCoord->getQuery()->getResult();
+            }
+
             $qb = $em->createQueryBuilder();
             $qb->select($selectUser)
                ->from('App\Entity\User', 'u')
@@ -892,9 +979,8 @@ public function findAllPage($data){
                ->setParameter('miUnidad', $miUnidad)
                ->setParameter('miId', $user->getId())
                ->setParameter('miCargo', $cargoEvaluador)
-               ->setParameter('cargosJefe', [1, 2, 3, 4, 5, 6, 55])
-               ->orderBy('c.nivel', 'ASC')
-               ->addOrderBy('c.id', 'ASC')
+               ->setParameter('cargosJefe', [1, 2, 3, 4])
+               ->orderBy('c.id', 'ASC')
                ->setMaxResults(1);
 
             return $qb->getQuery()->getResult();
